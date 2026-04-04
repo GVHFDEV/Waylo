@@ -81,8 +81,8 @@ export function SearchCard() {
           <div className="md:col-span-3 space-y-2">
             <label className="text-xs font-bold uppercase text-muted-foreground ml-1">Datas</label>
             <DatePickerWithRange 
-               // Nota: Precisaríamos atualizar o DatePicker para aceitar value/onChange 
-               // para uma integração 100% controlada, mas aqui ele funciona como trigger.
+               date={dateRange}
+               setDate={setDateRange}
             />
           </div>
 

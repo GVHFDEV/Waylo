@@ -89,64 +89,56 @@ export default function WizardPage() {
     const supabase = createClient()
 
     try {
-      // 1. Chamar a Server Action do Gemini (Missão 10)
-      const itineraryData = await generateItinerary(selections)
-
-      // 2. Obter o usuário atual
+      // 1. Obter o usuário atual
       const { data: { user } } = await supabase.auth.getUser()
 
-      // 3. Persistir no Supabase (Tabela itineraries)
+      // 2. Preparar as datas (com fallback seguro)
+      const dateParts = selections.dates.includes(' a ') 
+        ? selections.dates.split(' a ') 
+        : [selections.dates, selections.dates]
+
+      // 3. Criar registro inicial na tabela itineraries com status 'generating'
       const { data: savedData, error } = await supabase
         .from('itineraries')
         .insert([{
           user_id: user?.id,
           destination: selections.destination,
-          start_date: selections.dates.split(' a ')[0],
-          end_date: selections.dates.split(' a ')[1],
+          start_date: dateParts[0] || 'A definir',
+          end_date: dateParts[1] || 'A definir',
           companion: selections.companion,
           rhythm: selections.pace,
           budget: selections.budget,
-          content: itineraryData // JSON completo da IA
+          content: { 
+            status: 'generating',
+            dietary_restrictions: selections.dietary_restrictions,
+            dealbreakers: selections.dealbreakers,
+            vibes: selections.vibes,
+            additional_notes: selections.additional_notes 
+          }
         }])
         .select()
         .single()
 
       if (error) throw error
 
-      // 4. Redirecionar para a Vitrine de Curadoria
-      router.push(`/dashboard/roteiros/${savedData.id}`)
+      // 4. Redirecionar IMEDIATAMENTE
+      router.push(`/dashboard/viagem/${savedData.id}`)
+
+      // 5. Disparar a geração da IA em background (fire-and-forget real)
+      generateItinerary(savedData.id).catch(err => {
+        console.error('Erro silencioso na geração:', err)
+      })
+      
     } catch (err: any) {
-      // Alternativa melhor: extrair a mensagem real ou forçar a leitura do objeto de erro do Supabase
       const errorMessage = err?.message || err?.error_description || JSON.stringify(err, null, 2);
-
-      console.error('ERRO DETALHADO AO SALVAR ROTEIRO:', errorMessage);
-      console.error('Objeto original:', err);
-
-      alert(`Falha no sistema: ${errorMessage}\n\nVerifique o console para mais detalhes.`);
-
+      console.error('ERRO AO SALVAR ROTEIRO:', errorMessage);
+      alert(`Falha ao salvar: ${errorMessage}`);
       setIsLoading(false);
     }
   }
 
   // --- RENDER HELPERS ---
   const isSelected = (key: string, value: string) => selections[key as keyof typeof selections] === value
-
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center space-y-8 animate-in fade-in duration-700">
-        <div className="relative">
-          <Loader2 className="h-20 w-20 text-primary animate-spin" />
-          <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 text-primary shadow-2xl" />
-        </div>
-        <div className="space-y-3">
-          <h2 className="text-3xl font-heading font-bold text-foreground">Gerando seu roteiro mágico...</h2>
-          <p className="text-muted-foreground font-sans text-lg italic max-w-md mx-auto">
-            "Nossa IA está cruzando dados de voos e hotéis para criar a jornada perfeita para você."
-          </p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 space-y-10">
@@ -439,6 +431,7 @@ export default function WizardPage() {
         <Button
           onClick={handleNext}
           disabled={
+            isLoading ||
             (step === 1 && !selections.companion) ||
             (step === 2 && !selections.pace) ||
             (step === 3 && !selections.budget) ||
@@ -448,8 +441,8 @@ export default function WizardPage() {
         >
           {step === 7 ? (
             <>
-              Gerar Roteiro
-              <Sparkles className="ml-2 h-4 w-4" />
+              {isLoading ? 'Iniciando...' : 'Gerar Roteiro'}
+              {isLoading ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Sparkles className="ml-2 h-4 w-4" />}
             </>
           ) : (
             <>

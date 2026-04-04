@@ -17,6 +17,8 @@ import {
 
 interface DatePickerWithRangeProps {
   className?: string
+  date?: DateRange
+  setDate?: (date: DateRange | undefined) => void
 }
 
 /**
@@ -27,11 +29,7 @@ interface DatePickerWithRangeProps {
  * - Padding p-3 no calendário para evitar "encavalamento" de texto.
  * - Espaçamento extra nos dias da semana para legibilidade máxima.
  */
-export function DatePickerWithRange({ className }: DatePickerWithRangeProps) {
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined,
-  })
+export function DatePickerWithRange({ className, date, setDate }: DatePickerWithRangeProps) {
 
   const formatDateDisplay = (dateRange: DateRange | undefined) => {
     if (!dateRange?.from) return 'Quando?'
@@ -68,7 +66,7 @@ export function DatePickerWithRange({ className }: DatePickerWithRangeProps) {
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                 onClick={(e) => {
                   e.stopPropagation()
-                  setDate(undefined)
+                  if (setDate) setDate(undefined)
                 }}
               >
                 <X className="h-3 w-3" />

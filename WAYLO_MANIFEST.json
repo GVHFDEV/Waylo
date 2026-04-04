@@ -1,0 +1,32 @@
+{
+    "project": "Waylo",
+    "version": "2.0.0",
+    "engine": "Mistral Large 3 (Direct API)",
+    "ui_standards": {
+        "palette": [
+            "#FAFAF8",
+            "#1C1917",
+            "#E8833A"
+        ],
+        "fonts": {
+            "headings": "Cabinet Grotesk",
+            "body": "Satoshi"
+        },
+        "strategy": "Mobile-First / Airbnb-Style"
+    },
+    "architecture": {
+        "auth": "Supabase Auth (Current: Email/Pass, Next: Google)",
+        "database": "Supabase + RLS + SQL Migrations",
+        "generation_flow": "Wizard -> Async Background Action -> Realtime Update"
+    },
+    "features_completed": [
+        "Wizard V2",
+        "Activity Swap",
+        "Mistral Migration"
+    ],
+    "roadmap_short_term": [
+        "Travel Hub UI",
+        "Realtime Hydration",
+        "Logistics Tab"
+    ]
+}

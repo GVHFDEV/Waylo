@@ -1,12 +1,34 @@
 'use server'
 
 import { Mistral } from "@mistralai/mistralai";
+import { createClient } from "@/lib/supabase/server";
 
-export async function generateItinerary(formData: any) {
+export async function generateItinerary(itineraryId?: string, formData?: any) {
   const apiKey = process.env.MISTRAL_API_KEY;
   if (!apiKey) throw new Error("Chave de API da Mistral não configurada.");
 
   const mistral = new Mistral({ apiKey });
+  const supabase = itineraryId ? await createClient() : null;
+
+  let payload = formData;
+  if (!formData && itineraryId && supabase) {
+    const { data: trip } = await supabase.from('itineraries').select('*').eq('id', itineraryId).single();
+    if (trip) {
+      payload = {
+        destination: trip.destination,
+        dates: `${trip.start_date} a ${trip.end_date}`,
+        pace: trip.rhythm,
+        budget: trip.budget,
+        companion: trip.companion,
+        additional_notes: trip.content?.additional_notes,
+        dealbreakers: trip.content?.dealbreakers,
+        vibes: trip.content?.vibes,
+        dietary_restrictions: trip.content?.dietary_restrictions
+      };
+    }
+  }
+
+  if (!payload) throw new Error("Dados de formulário ou ID de viagem não fornecidos.");
 
   const prompt = `[SYSTEM IDENTITY & PRIME DIRECTIVE]
 
@@ -58,15 +80,15 @@ Before generating any JSON, execute this internal checklist silently:
 
 [MODULE 1 — USER PROFILE INPUT]
 
-  Destination:          ${formData.destination}
-  Travel Dates:         ${formData.dates}
-  Physical Pace:        ${formData.pace}
-  Budget Tier:          ${formData.budget}
-  Group Composition:    ${formData.companion}
-  Absolute Desires:     "${formData.additional_notes || 'None specified'}"
-  Dealbreakers:         "${formData.dealbreakers || 'None specified'}"
-  Core Vibes:           "${formData.vibes || 'Premium immersive tourism'}"
-  Dietary Restrictions: "${formData.dietary_restrictions || 'None'}"
+  Destination:          ${payload.destination}
+  Travel Dates:         ${payload.dates}
+  Physical Pace:        ${payload.pace}
+  Budget Tier:          ${payload.budget}
+  Group Composition:    ${payload.companion}
+  Absolute Desires:     "${payload.additional_notes || 'None specified'}"
+  Dealbreakers:         "${payload.dealbreakers || 'None specified'}"
+  Core Vibes:           "${payload.vibes || 'Premium immersive tourism'}"
+  Dietary Restrictions: "${payload.dietary_restrictions || 'None'}"
 
 [MODULE 2 — THE W.A.Y.L.O. RULESET]
 
@@ -322,12 +344,35 @@ Silent computation complete. Output the JSON. Nothing else.`;
   if (!content) throw new Error("Motor Mistral falhou ao gerar conteúdo.");
 
   try {
-    return JSON.parse(typeof content === 'string' ? content : JSON.stringify(content));
+    const finalJSON = JSON.parse(typeof content === 'string' ? content : JSON.stringify(content));
+    
+    if (itineraryId && supabase) {
+      const { data: trip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
+      const currentContent = trip?.content || {};
+      
+      await supabase
+        .from('itineraries')
+        .update({ 
+          content: { ...currentContent, ...finalJSON, status: 'ready' }
+        })
+        .eq('id', itineraryId);
+    }
+
+    return finalJSON;
   } catch (e) {
     console.error("Erro ao parsear JSON da Mistral:", e);
-    // Fallback simples se o parse falhar
     const match = (content as string).match(/\{[\s\S]*\}/);
-    if (match) return JSON.parse(match[0]);
+    if (match) {
+      const finalJSON = JSON.parse(match[0]);
+      if (itineraryId && supabase) {
+        const { data: trip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
+        const currentContent = trip?.content || {};
+        await supabase.from('itineraries').update({ 
+          content: { ...currentContent, ...finalJSON, status: 'ready' } 
+        }).eq('id', itineraryId);
+      }
+      return finalJSON;
+    }
     throw e;
   }
 }
