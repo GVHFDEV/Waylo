@@ -5,11 +5,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
+        hostname: '**.4sqi.net', // Libera os servidores de imagem do Foursquare
       },
       {
         protocol: 'https',
-        hostname: '**.4sqi.net',
+        hostname: '**.unsplash.com',
       },
     ],
   },

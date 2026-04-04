@@ -17,7 +17,6 @@ import {
   ImageIcon
 } from 'lucide-react'
 import Link from 'next/link'
-import Image from 'next/image'
 
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
@@ -25,7 +24,73 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 
 /* ═══════════════════════════════════════════════════════════════════════ */
-/*  FOURSQUARE API V3                                                     */
+/* UNSPLASH API — Imagens contextuais por busca de local                  */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+/** Hash simples para gerar um índice determinístico a partir de uma string */
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i)
+    hash |= 0
+  }
+  return Math.abs(hash)
+}
+
+async function fetchUnsplashImage(
+  placeName: string,
+  destination: string,
+  activityDescription?: string
+): Promise<string> {
+  const fallback = `https://picsum.photos/seed/${encodeURIComponent(placeName + (activityDescription || ''))}/800/400`
+  const accessKey = process.env.UNSPLASH_ACCESS_KEY
+  if (!accessKey || !placeName) return fallback
+
+  try {
+    // Busca primária: nome exato do local (mais específico)
+    const primaryQuery = placeName
+    const res = await fetch(
+      `https://api.unsplash.com/search/photos?query=${encodeURIComponent(primaryQuery)}&per_page=5&orientation=landscape`,
+      {
+        headers: { Authorization: `Client-ID ${accessKey}` },
+        next: { revalidate: 86400 },
+      }
+    )
+    if (!res.ok) return fallback
+
+    let data = await res.json()
+    let results = data?.results
+
+    // Se a busca exata não retornou nada, tenta com destino para contextualizar
+    if (!results?.length) {
+      const fallbackQuery = `${destination} tourism ${activityDescription || ''}`
+      const res2 = await fetch(
+        `https://api.unsplash.com/search/photos?query=${encodeURIComponent(fallbackQuery)}&per_page=5&orientation=landscape`,
+        {
+          headers: { Authorization: `Client-ID ${accessKey}` },
+          next: { revalidate: 86400 },
+        }
+      )
+      if (!res2.ok) return fallback
+      data = await res2.json()
+      results = data?.results
+    }
+
+    if (!results?.length) return fallback
+
+    // Seleciona uma foto usando hash para evitar repetição entre cards diferentes
+    const uniqueKey = `${placeName}-${activityDescription || ''}-${destination}`
+    const idx = simpleHash(uniqueKey) % results.length
+    const photo = results[idx]
+
+    return `${photo.urls.raw}&w=800&h=500&fit=crop&q=80`
+  } catch {
+    return fallback
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
+/* FOURSQUARE API V3 - LÓGICA CORRIGIDA E BLINDADA                       */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
 interface FoursquareData {
@@ -47,18 +112,19 @@ async function fetchPlaceData(
     rating: null,
     category: null,
     tip: null,
-    mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeName + ', ' + destination)}`,
+    mapsUrl: `https://www.google.com/maps/search/?api=1&query=$?query=${encodeURIComponent(placeName + ' ' + destination)}`,
   }
 
-  const fsqKey = process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY
+  // LÊ A CHAVE NOS DOIS AMBIENTES POSSÍVEIS (SERVIDOR E CLIENTE)
+  const fsqKey = process.env.FOURSQUARE_API_KEY || process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY
   console.log(`[FSQ] Chave presente: ${!!fsqKey}, place: "${placeName}"`)
 
   if (!fsqKey || !placeName) return fallback
 
   try {
-    // 1. Buscar o local
+    // 1. Buscar o local e pegar o fsq_id
     const searchRes = await fetch(
-      `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(placeName)}&near=${encodeURIComponent(destination)}&limit=1&fields=fsq_id,name,location,rating,categories,tips`,
+      `https://api.foursquare.com/v3/places/search?query=${encodeURIComponent(placeName)}&near=${encodeURIComponent(destination)}&limit=1&fields=fsq_id,name,location,rating,categories`,
       {
         headers: { Authorization: fsqKey, Accept: 'application/json' },
         next: { revalidate: 86400 },
@@ -66,10 +132,7 @@ async function fetchPlaceData(
     )
 
     console.log(`[FSQ] Search status: ${searchRes.status}`)
-    if (!searchRes.ok) {
-      console.error(`[FSQ] Search falhou:`, await searchRes.text())
-      return fallback
-    }
+    if (!searchRes.ok) return fallback
 
     const searchData = await searchRes.json()
     const place = searchData?.results?.[0]
@@ -78,36 +141,37 @@ async function fetchPlaceData(
       return fallback
     }
 
-    console.log(`[FSQ] Encontrado: ${place.name} (${place.fsq_id})`)
-
     const fsqId = place.fsq_id
     const formattedAddress = place.location?.formatted_address || place.location?.address || null
     const rating = place.rating ?? null
     const category = place.categories?.[0]?.name || null
-    const tip = place.tips?.[0]?.text || null
 
-    // 2. Buscar foto — prefix + "original" + suffix
-    let photoUrl: string | null = null
-    try {
-      const photoRes = await fetch(
-        `https://api.foursquare.com/v3/places/${fsqId}/photos?limit=1&sort=POPULAR`,
-        {
-          headers: { Authorization: fsqKey, Accept: 'application/json' },
-          next: { revalidate: 86400 },
-        }
-      )
-      console.log(`[FSQ] Photo status: ${photoRes.status}`)
-      if (photoRes.ok) {
-        const photos = await photoRes.json()
-        if (photos?.[0]) {
-          photoUrl = `${photos[0].prefix}original${photos[0].suffix}`
-          console.log(`[FSQ] Foto: ${photoUrl}`)
-        } else {
-          console.log(`[FSQ] Sem fotos para ${placeName}`)
-        }
+    // 2. Buscar foto e dica em paralelo para ser mais rápido
+    const [photoRes, tipRes] = await Promise.all([
+      fetch(`https://api.foursquare.com/v3/places/${fsqId}/photos?limit=1&sort=POPULAR`, {
+        headers: { Authorization: fsqKey, Accept: 'application/json' },
+        next: { revalidate: 86400 },
+      }),
+      fetch(`https://api.foursquare.com/v3/places/${fsqId}/tips?limit=1&sort=POPULAR`, {
+        headers: { Authorization: fsqKey, Accept: 'application/json' },
+        next: { revalidate: 86400 },
+      })
+    ])
+
+    let photoUrl = null
+    if (photoRes.ok) {
+      const photos = await photoRes.json()
+      if (photos?.[0]) {
+        // MONTAGEM CORRETA DA URL DA IMAGEM
+        photoUrl = `${photos[0].prefix}800x600${photos[0].suffix}`
+        console.log(`[FSQ] Foto montada: ${photoUrl}`)
       }
-    } catch (e) {
-      console.error(`[FSQ] Erro foto:`, e)
+    }
+
+    let tip = null
+    if (tipRes.ok) {
+      const tips = await tipRes.json()
+      tip = tips?.[0]?.text || null
     }
 
     return { photoUrl, address: formattedAddress, rating, category, tip, mapsUrl: fallback.mapsUrl }
@@ -118,7 +182,7 @@ async function fetchPlaceData(
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
-/*  HELPERS VISUAIS                                                       */
+/* HELPERS VISUAIS                                                       */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
 function PeriodIcon({ period }: { period: string }) {
@@ -155,7 +219,7 @@ function RatingStars({ rating }: { rating: number | null }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
-/*  ACTIVITY CARD                                                         */
+/* ACTIVITY CARD                                                         */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
 async function ActivityCard({
@@ -168,7 +232,11 @@ async function ActivityCard({
   isLast: boolean
 }) {
   const placeName = activity.place_name || activity.location || ''
-  const fsq = await fetchPlaceData(placeName, destination)
+  const description = activity.description || ''
+  const [fsq, imageUrl] = await Promise.all([
+    fetchPlaceData(placeName, destination),
+    fetchUnsplashImage(placeName, destination, description),
+  ])
 
   return (
     <div className="relative flex gap-5 md:gap-7">
@@ -182,29 +250,22 @@ async function ActivityCard({
       <div className="flex-1 pb-8 group">
         <div className="bg-card rounded-2xl border-2 border-primary shadow-sm hover:shadow-lg hover:border-primary-hover transition-all duration-300 overflow-hidden">
 
-          {/* FOTO DO LOCAL (Foursquare) ou placeholder discreto */}
-          {fsq.photoUrl ? (
-            <div className="relative w-full h-48 md:h-56 overflow-hidden">
-              <Image
-                src={fsq.photoUrl}
-                alt={placeName}
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-                sizes="(max-width: 768px) 100vw, 800px"
-              />
-              {fsq.category && (
-                <div className="absolute top-3 left-3">
-                  <span className="bg-card/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-foreground px-3 py-1.5 rounded-full border border-border">
-                    {fsq.category}
-                  </span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="w-full h-20 bg-muted flex items-center justify-center">
-              <ImageIcon className="h-5 w-5 text-muted-foreground" />
-            </div>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <div className="relative w-full h-48 md:h-56 overflow-hidden bg-muted">
+            <img
+              src={imageUrl}
+              alt={placeName}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            />
+            {fsq.category && (
+              <div className="absolute top-3 left-3 z-10">
+                <span className="bg-card/90 backdrop-blur-sm text-[10px] font-bold uppercase tracking-widest text-foreground px-3 py-1.5 rounded-full border border-border">
+                  {fsq.category}
+                </span>
+              </div>
+            )}
+          </div>
 
           <div className="p-5 md:p-6 space-y-4">
             {/* Período + Custo */}
@@ -251,7 +312,7 @@ async function ActivityCard({
               <div className="flex items-start gap-2.5 pt-3 border-t border-border">
                 <Quote className="h-4 w-4 text-primary/40 shrink-0 mt-0.5" />
                 <p className="text-sm italic text-muted-foreground leading-relaxed line-clamp-2">
-                  &ldquo;{fsq.tip}&rdquo;
+                  “{fsq.tip}”
                 </p>
               </div>
             )}
@@ -263,7 +324,7 @@ async function ActivityCard({
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
-/*  PÁGINA PRINCIPAL                                                      */
+/* PÁGINA PRINCIPAL                                                      */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
 export default async function ItineraryPage({ params }: { params: { id: string } }) {
