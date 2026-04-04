@@ -22,6 +22,7 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import { RegenerateButton } from '@/components/itinerary/RegenerateButton'
 
 /* ═══════════════════════════════════════════════════════════════════════ */
 /* UNSPLASH API — Imagens contextuais por busca de local                  */
@@ -99,7 +100,7 @@ interface FoursquareData {
   rating: number | null
   category: string | null
   tip: string | null
-  mapsUrl: string
+  mapsUrl: string | null
 }
 
 async function fetchPlaceData(
@@ -112,7 +113,7 @@ async function fetchPlaceData(
     rating: null,
     category: null,
     tip: null,
-    mapsUrl: `https://www.google.com/maps/search/?api=1&query=$?query=${encodeURIComponent(placeName + ' ' + destination)}`,
+    mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeName + ' ' + destination)}`,
   }
 
   // LÊ A CHAVE NOS DOIS AMBIENTES POSSÍVEIS (SERVIDOR E CLIENTE)
@@ -145,6 +146,7 @@ async function fetchPlaceData(
     const formattedAddress = place.location?.formatted_address || place.location?.address || null
     const rating = place.rating ?? null
     const category = place.categories?.[0]?.name || null
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + destination)}`
 
     // 2. Buscar foto e dica em paralelo para ser mais rápido
     const [photoRes, tipRes] = await Promise.all([
@@ -174,7 +176,7 @@ async function fetchPlaceData(
       tip = tips?.[0]?.text || null
     }
 
-    return { photoUrl, address: formattedAddress, rating, category, tip, mapsUrl: fallback.mapsUrl }
+    return { photoUrl, address: formattedAddress, rating, category, tip, mapsUrl }
   } catch (err) {
     console.error('[FSQ] Erro geral:', err)
     return fallback
@@ -263,10 +265,22 @@ async function ActivityCard({
   activity,
   destination,
   isLast,
+  itineraryId,
+  dayIdx,
+  itemIdx,
+  userPreferences
 }: {
   activity: any
   destination: string
   isLast: boolean
+  itineraryId: string
+  dayIdx: number
+  itemIdx: number
+  userPreferences: {
+    budget: string
+    dietary: string
+    dealbreakers: string
+  }
 }) {
   const placeName = activity.place_name || activity.location || ''
   const description = activity.description || ''
@@ -302,6 +316,23 @@ async function ActivityCard({
                 </span>
               </div>
             )}
+
+            {/* BOTÃO DE REGENERAÇÃO UNITÁRIA */}
+            <div className="absolute top-3 right-3 z-10 group-hover:opacity-100 opacity-60 transition-opacity">
+              <RegenerateButton
+                itineraryId={itineraryId}
+                dayIdx={dayIdx}
+                itemIdx={itemIdx}
+                context={{
+                  destination,
+                  budget: userPreferences.budget,
+                  dietary: userPreferences.dietary,
+                  dealbreakers: userPreferences.dealbreakers,
+                  rejectedActivity: activity.place_name,
+                  period: activity.period
+                }}
+              />
+            </div>
           </div>
 
           <div className="p-5 md:p-6 space-y-4">
@@ -324,22 +355,35 @@ async function ActivityCard({
             </h4>
 
             {/* Local (link Google Maps) */}
-            {placeName && (
-              <a
-                href={fsq.mapsUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group/link"
-              >
-                <MapPin className="h-4 w-4 text-primary shrink-0" />
-                <span className="underline decoration-border underline-offset-4 group-hover/link:decoration-primary">
-                  {placeName}
-                </span>
-                {fsq.address && (
-                  <span className="text-[11px] text-muted-foreground ml-1 hidden md:inline">— {fsq.address}</span>
-                )}
-              </a>
-            )}
+            {placeName && (() => {
+              const isGeneric = [
+                'restaurante', 'almoço', 'jantar', 'café', 'cafe', 
+                'lanche', 'fast food', 'shopping', 'passeio', 'ponto turístico',
+                'hotel', 'hospedagem', 'resort', 'pousada', 'dormir', 'descanso'
+              ].some(g => placeName.toLowerCase() === g || placeName.toLowerCase().startsWith(g + ' '));
+
+              return (fsq.mapsUrl && !isGeneric) ? (
+                <a
+                  href={fsq.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-primary transition-colors group/link"
+                >
+                  <MapPin className="h-4 w-4 text-primary shrink-0" />
+                  <span className="underline decoration-border underline-offset-4 group-hover/link:decoration-primary">
+                    {placeName}
+                  </span>
+                  {fsq.address && (
+                    <span className="text-[11px] text-muted-foreground ml-1 hidden md:inline">— {fsq.address}</span>
+                  )}
+                </a>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                  <MapPin className="h-4 w-4 text-primary/40 shrink-0" />
+                  <span>{placeName}</span>
+                </div>
+              );
+            })()}
 
             {/* Rating */}
             {fsq.rating && <RatingStars rating={fsq.rating} />}
@@ -407,7 +451,7 @@ export default async function ItineraryPage({ params }: { params: { id: string }
             <div className="flex flex-wrap items-center gap-2.5">
               {(itineraryData.start_date || itineraryData.end_date) ? (
                 <span className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground bg-slate-50 border border-slate-200 px-4 py-2 rounded-full">
-                  <CalendarIcon className="h-4 w-4 text-[#1C1917]" />
+                  <CalendarIcon className="h-4 w-4 text-[#E8833A]" />
                   {itineraryData.start_date}
                   {itineraryData.end_date && ` — ${itineraryData.end_date}`}
                 </span>
@@ -429,21 +473,21 @@ export default async function ItineraryPage({ params }: { params: { id: string }
 
       {/* ─── TRIP SUMMARY ─── */}
       {itineraryData.content?.trip_summary && (
-        <section className="w-full bg-slate-50/50 border-b border-border py-8">
-          <div className="max-w-3xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-2">
+        <section className="w-full bg-slate-50/50 border-b border-border py-5">
+          <div className="max-w-3xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1">
               <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8833A]">Essência da Viagem</span>
-              <p className="text-xl font-heading font-black text-charcoal leading-tight">
+              <p className="text-lg font-heading font-black text-charcoal leading-tight">
                 {itineraryData.content.trip_summary.dominant_vibe}
               </p>
             </div>
-            {itineraryData.content.trip_summary.safety_notes && (
-              <div className="bg-white border border-amber-200 rounded-xl p-4 flex gap-3 items-start">
-                <Sparkles className="h-5 w-5 text-[#E8833A] shrink-0" />
-                <div className="space-y-1">
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Nota de Segurança</span>
+            {(itineraryData.content.trip_summary.important_notes || itineraryData.content.trip_summary.safety_notes) && (
+              <div className="bg-white border-2 border-[#E8833A]/20 rounded-xl p-3 flex gap-3 items-start shadow-sm shadow-amber-500/5">
+                <Sparkles className="h-4 w-4 text-[#E8833A] shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8833A]">Observações Importantes</span>
                   <p className="text-sm text-charcoal/80 leading-relaxed italic">
-                    {itineraryData.content.trip_summary.safety_notes}
+                    {itineraryData.content.trip_summary.important_notes || itineraryData.content.trip_summary.safety_notes}
                   </p>
                 </div>
               </div>
@@ -496,6 +540,14 @@ export default async function ItineraryPage({ params }: { params: { id: string }
                         activity={item}
                         destination={destination}
                         isLast={isLastItem}
+                        itineraryId={id}
+                        dayIdx={dayIdx}
+                        itemIdx={idx}
+                        userPreferences={{
+                          budget: itineraryData.budget || 'moderate',
+                          dietary: itineraryData.dietary_restrictions || 'None',
+                          dealbreakers: itineraryData.dealbreakers || 'None'
+                        }}
                       />
                     )
                   })
@@ -506,6 +558,14 @@ export default async function ItineraryPage({ params }: { params: { id: string }
                       activity={activity}
                       destination={destination}
                       isLast={idx === (day.activities?.length ?? 0) - 1}
+                      itineraryId={id}
+                      dayIdx={dayIdx}
+                      itemIdx={idx}
+                      userPreferences={{
+                        budget: itineraryData.budget || 'moderate',
+                        dietary: itineraryData.dietary_restrictions || 'None',
+                        dealbreakers: itineraryData.dealbreakers || 'None'
+                      }}
                     />
                   ))
                 )}

@@ -63,6 +63,8 @@ export default function WizardPage() {
     dealbreakers: '',
     dietary_restrictions: ''
   })
+  const [hasMobility, setHasMobility] = useState(false)
+  const [dietaryText, setDietaryText] = useState('')
 
   const totalSteps = 7
   const progressValue = (step / totalSteps) * 100
@@ -342,13 +344,15 @@ export default function WizardPage() {
                       variant="outline"
                       className={cn(
                         "flex-1 h-12 rounded-xl font-bold",
-                        (ov === 'Sim' && selections.dietary_restrictions.includes('Mobilidade:')) || (ov === 'Não' && !selections.dietary_restrictions.includes('Mobilidade:'))
+                        (ov === 'Sim' && hasMobility) || (ov === 'Não' && !hasMobility)
                           ? "border-primary bg-primary/5 text-primary"
                           : "border-border"
                       )}
                       onClick={() => {
-                        const base = selections.dietary_restrictions.split('|')[1] || ''
-                        handleSelect('dietary_restrictions', ov === 'Sim' ? `Mobilidade: Sim | ${base}` : `Mobilidade: Não | ${base}`)
+                        const newVal = ov === 'Sim'
+                        setHasMobility(newVal)
+                        const diet = dietaryText ? ` | ${dietaryText}` : ''
+                        handleSelect('dietary_restrictions', `Mobilidade: ${newVal ? 'Sim' : 'Não'}${diet}`)
                       }}
                     >
                       {ov}
@@ -364,10 +368,11 @@ export default function WizardPage() {
                 <Input
                   placeholder="Ex: Vegan, Alergia a amendoim, Sem glúten..."
                   className="h-14 rounded-xl border-2 focus-visible:ring-primary font-sans"
-                  value={selections.dietary_restrictions.split('|')[1]?.trim() || ''}
+                  value={dietaryText}
                   onChange={(e) => {
-                    const mob = selections.dietary_restrictions.split('|')[0] || 'Mobilidade: Não '
-                    handleSelect('dietary_restrictions', `${mob} | ${e.target.value}`)
+                    setDietaryText(e.target.value)
+                    const mob = hasMobility ? 'Mobilidade: Sim' : 'Mobilidade: Não'
+                    handleSelect('dietary_restrictions', e.target.value ? `${mob} | ${e.target.value}` : mob)
                   }}
                 />
               </div>
@@ -378,23 +383,20 @@ export default function WizardPage() {
         {step === 6 && (
           <div className="space-y-8">
             <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">O que você ODEIA?</h1>
-                <Ban className="h-8 w-8 text-red-500/50" />
-              </div>
-              <p className="text-muted-foreground font-sans text-lg">Chamamos de Dealbreakers. O que NUNCA deve aparecer no roteiro?</p>
+              <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Preferências de Exclusão</h1>
+              <p className="text-muted-foreground font-sans">Existem tipos de lugares ou atividades que você prefere evitar nesta viagem?</p>
             </div>
 
             <div className="space-y-4">
               <textarea
-                className="w-full min-h-[180px] p-6 rounded-2xl border-2 border-border bg-background font-sans text-foreground focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 outline-none transition-all resize-none placeholder:text-muted-foreground/50"
-                placeholder="Ex: Não gosto de museus, odeio frutos do mar, evite qualquer coisa com altura, nada de baladas..."
+                className="w-full min-h-[180px] p-6 rounded-2xl border-2 border-border bg-background font-sans text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none placeholder:text-muted-foreground/50"
+                placeholder="Ex: Prefiro evitar museus, não gosto de frutos do mar, evitar atividades com altura..."
                 value={selections.dealbreakers}
                 onChange={(e) => handleSelect('dealbreakers', e.target.value)}
               />
-              <div className="flex items-center gap-2 text-xs text-red-500/70 px-2 font-bold uppercase tracking-tighter">
-                <ShieldAlert className="h-3.5 w-3.5" />
-                <span>O W.A.Y.L.O. irá banir esses termos da sua experiência.</span>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
+                <Sparkles className="h-3 w-3 text-primary" />
+                <span>Sua inteligência de viagem personalizada levará isso em conta.</span>
               </div>
             </div>
           </div>
@@ -416,7 +418,7 @@ export default function WizardPage() {
               />
               <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
                 <Sparkles className="h-3 w-3 text-primary" />
-                <span>O motor V2.0 usará essas notas como Prioridade Suprema.</span>
+                <span>Sua inteligência de viagem personalizada.</span>
               </div>
             </div>
           </div>
