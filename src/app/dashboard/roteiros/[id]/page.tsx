@@ -219,6 +219,43 @@ function RatingStars({ rating }: { rating: number | null }) {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
+/* TIP CARD                                                               */
+/* ═══════════════════════════════════════════════════════════════════════ */
+
+function TipCard({
+  content,
+  isLast
+}: {
+  content: string
+  isLast: boolean
+}) {
+  return (
+    <div className="relative flex gap-5 md:gap-7">
+      {/* Timeline lateral */}
+      <div className="flex flex-col items-center shrink-0 pt-2">
+        <div className="h-3 w-3 rounded-full bg-[#E8833A] border-[2px] border-background ring-2 ring-[#E8833A]/20 z-10 shrink-0" />
+        {!isLast && <div className="w-px flex-1 bg-border mt-1" />}
+      </div>
+
+      {/* Card Ghost */}
+      <div className="flex-1 pb-8">
+        <div className="bg-transparent rounded-2xl border-2 border-[#E8833A] p-5 md:p-6 flex items-start gap-4 transition-all hover:bg-amber-50/10">
+          <div className="h-10 w-10 rounded-xl bg-amber-50 flex items-center justify-center shrink-0 border border-amber-100">
+            <Sparkles className="h-5 w-5 text-[#E8833A]" />
+          </div>
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8833A]">Dica do Curador</span>
+            <p className="text-sm italic text-foreground leading-relaxed">
+              {content}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════════ */
 /* ACTIVITY CARD                                                         */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
@@ -368,19 +405,20 @@ export default async function ItineraryPage({ params }: { params: { id: string }
               {destination}
             </h1>
             <div className="flex flex-wrap items-center gap-2.5">
-              {(itineraryData.start_date || itineraryData.end_date) && (
-                <span className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-full">
-                  <CalendarIcon className="h-3.5 w-3.5" />
-                  {itineraryData.start_date} — {itineraryData.end_date}
+              {(itineraryData.start_date || itineraryData.end_date) ? (
+                <span className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground bg-slate-50 border border-slate-200 px-4 py-2 rounded-full">
+                  <CalendarIcon className="h-4 w-4 text-[#1C1917]" />
+                  {itineraryData.start_date}
+                  {itineraryData.end_date && ` — ${itineraryData.end_date}`}
                 </span>
-              )}
+              ) : null}
               {itineraryData.companion && (
-                <span className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-full capitalize">
+                <span className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground bg-slate-50 border border-slate-200 px-4 py-2 rounded-full capitalize">
                   {itineraryData.companion}
                 </span>
               )}
               {itineraryData.rhythm && (
-                <span className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground bg-muted border border-border px-3 py-1.5 rounded-full capitalize">
+                <span className="inline-flex items-center gap-2 text-sm font-bold text-muted-foreground bg-slate-50 border border-slate-200 px-4 py-2 rounded-full capitalize">
                   {itineraryData.rhythm}
                 </span>
               )}
@@ -389,30 +427,88 @@ export default async function ItineraryPage({ params }: { params: { id: string }
         </div>
       </header>
 
+      {/* ─── TRIP SUMMARY ─── */}
+      {itineraryData.content?.trip_summary && (
+        <section className="w-full bg-slate-50/50 border-b border-border py-8">
+          <div className="max-w-3xl mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#E8833A]">Essência da Viagem</span>
+              <p className="text-xl font-heading font-black text-charcoal leading-tight">
+                {itineraryData.content.trip_summary.dominant_vibe}
+              </p>
+            </div>
+            {itineraryData.content.trip_summary.safety_notes && (
+              <div className="bg-white border border-amber-200 rounded-xl p-4 flex gap-3 items-start">
+                <Sparkles className="h-5 w-5 text-[#E8833A] shrink-0" />
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700">Nota de Segurança</span>
+                  <p className="text-sm text-charcoal/80 leading-relaxed italic">
+                    {itineraryData.content.trip_summary.safety_notes}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* ─── TIMELINE ─── */}
       <main className="flex-1 max-w-3xl mx-auto px-4 w-full py-12">
         <div className="space-y-14">
           {route?.itinerary?.map((day: any, dayIdx: number) => (
             <section key={dayIdx} className="space-y-8">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-xl bg-foreground text-background flex items-center justify-center font-heading font-black text-xl shrink-0">
-                  {day.day}
-                </div>
-                <div>
-                  <h2 className="text-2xl font-heading font-bold text-foreground">Dia {day.day}</h2>
-                  {day.date && <p className="text-xs font-bold uppercase tracking-widest text-primary">{day.date}</p>}
+                <div className="flex-1 flex flex-col md:flex-row md:items-center justify-between gap-2">
+                  <div className="space-y-1">
+                    <h2 className="text-3xl font-heading font-black text-foreground">
+                      Dia {day.day}
+                    </h2>
+                    {day.day_title && (
+                      <p className="text-xl font-heading font-bold text-[#E8833A] leading-tight">
+                        {day.day_title}
+                      </p>
+                    )}
+                  </div>
+                  {day.fatigue_level && (
+                    <span className={cn(
+                      "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border self-start",
+                      day.fatigue_level === 'low' ? "bg-green-50 text-green-700 border-green-200" :
+                      day.fatigue_level === 'medium' ? "bg-amber-50 text-amber-700 border-amber-200" :
+                      "bg-red-50 text-red-700 border-red-200"
+                    )}>
+                      <Clock className="h-3 w-3" />
+                      Esforço {day.fatigue_level}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="ml-6">
-                {day.activities?.map((activity: any, idx: number) => (
-                  <ActivityCard
-                    key={idx}
-                    activity={activity}
-                    destination={destination}
-                    isLast={idx === (day.activities?.length ?? 0) - 1}
-                  />
-                ))}
+                {day.items ? (
+                  day.items.map((item: any, idx: number) => {
+                    const isLastItem = idx === day.items.length - 1
+                    if (item.type === 'tip') {
+                      return <TipCard key={idx} content={item.content} isLast={isLastItem} />
+                    }
+                    return (
+                      <ActivityCard
+                        key={idx}
+                        activity={item}
+                        destination={destination}
+                        isLast={isLastItem}
+                      />
+                    )
+                  })
+                ) : (
+                  day.activities?.map((activity: any, idx: number) => (
+                    <ActivityCard
+                      key={idx}
+                      activity={activity}
+                      destination={destination}
+                      isLast={idx === (day.activities?.length ?? 0) - 1}
+                    />
+                  ))
+                )}
               </div>
 
               {dayIdx < (route?.itinerary?.length ?? 0) - 1 && (
