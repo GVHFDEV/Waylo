@@ -1,26 +1,118 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* =========================================================
+   WAYLO DESIGN SYSTEM — globals.css
+   Stack: Tailwind CSS v4 + next/font/local
+   ========================================================= */
 
+/* ---------------------------------------------------------
+   1. TIPOGRAFIA
+   As CSS vars --font-cabinet-grotesk e --font-satoshi são
+   injetadas pelo next/font/local via className no <html>.
+   O @theme as expõe como utilitários Tailwind (font-sans, etc.)
+   --------------------------------------------------------- */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-satoshi);
+  --font-heading: var(--font-cabinet-grotesk);
+
+  /* ---------------------------------------------------------
+     2. PALETA DE CORES — Waylo Brand
+     Off-white  : #FAFAF8 → fundo principal
+     Carvão     : #1C1917 → foreground / texto
+     Âmbar      : #E8833A → primary / CTA
+     --------------------------------------------------------- */
+
+  /* Background */
+  --color-background: #FAFAF8;
+
+  /* Foreground (texto principal) */
+  --color-foreground: #1C1917;
+
+  /* Primary — Âmbar */
+  --color-primary:           #E8833A;
+  --color-primary-hover:     #D4722E;
+  --color-primary-foreground:#FFFFFF;
+
+  /* Muted — superfícies secundárias */
+  --color-muted:             #F0EFE9;
+  --color-muted-foreground:  #6B6560;
+
+  /* Accent — versão suave do âmbar */
+  --color-accent:            #FDF0E6;
+  --color-accent-foreground: #A8540E;
+
+  /* Destructive */
+  --color-destructive:           #DC2626;
+  --color-destructive-foreground:#FFFFFF;
+
+  /* Border & Input */
+  --color-border: #E4E2DC;
+  --color-input:  #E4E2DC;
+  --color-ring:   #E8833A;
+
+  /* Card */
+  --color-card:            #FFFFFF;
+  --color-card-foreground: #1C1917;
+
+  /* ---------------------------------------------------------
+     3. BORDER RADIUS
+     --------------------------------------------------------- */
+  --radius-sm: 0.375rem;   /* 6px  */
+  --radius-md: 0.625rem;   /* 10px */
+  --radius-lg: 0.875rem;   /* 14px */
+  --radius-xl: 1.25rem;    /* 20px */
+  --radius-2xl: 1.75rem;   /* 28px */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------------------------------------------------------
+   4. BASE STYLES
+   --------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Garante scroll suave e previne layout shift de fonte */
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-satoshi, system-ui, sans-serif);
+  font-size: 1rem;
+  line-height: 1.6;
+  /* Renderização de fonte otimizada */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Headings usam Cabinet Grotesk */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-cabinet-grotesk, system-ui, sans-serif);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------
+   5. UTILITÁRIOS DE SELEÇÃO
+   --------------------------------------------------------- */
+::selection {
+  background-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
+  color: var(--color-foreground);
+}
+
+/* ---------------------------------------------------------
+   6. FOCUS RING GLOBAL (acessibilidade)
+   --------------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
 }
