@@ -2,22 +2,26 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 /**
- * Cria e retorna uma instância do Supabase Client para uso exclusivo no Servidor.
+ * WAYLO SUPABASE SERVER CLIENT (V3.0)
  * 
- * Esta função deve ser usada em:
+ * Factory function to create a Supabase Client for:
  * 1. Server Components
- * 2. Server Actions
- * 3. Route Handlers
- * 
- * Ela utiliza a API de cookies do Next.js (async no Next.js 15+) para gerenciar
- * a sessão do usuário de forma segura no lado do servidor.
+ * 2. Server Actions (can set cookies)
+ * 3. Route Handlers (can set cookies)
  */
 export async function createClient() {
   const cookieStore = await cookies()
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase environment variables');
+  }
+
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseKey,
     {
       cookies: {
         getAll() {
@@ -29,8 +33,9 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // O método setAll foi chamado de um Server Component.
-            // Isso pode ser ignorado se houver um middleware atualizando as sessões.
+            // NOTE: setAll may fail if called from a Server Component.
+            // This is handled by the Middleware (middleware.ts) which
+            // refreshes sessions and updates cookies in the request cycle.
           }
         },
       },

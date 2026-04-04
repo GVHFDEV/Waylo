@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { RegenerateButton } from '@/components/itinerary/RegenerateButton'
 import { RealtimeTripListener } from '@/components/itinerary/RealtimeTripListener'
+import { GenerationTrigger } from '@/components/itinerary/GenerationTrigger'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ActivityCard } from '@/components/itinerary/ActivityCard'
@@ -83,16 +84,17 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
   }
 
   const { content } = itineraryData
-  const status = content?.status || 'generating'
-  const isGenerating = status === 'generating'
+  const status = content?.status || 'analyzing'
+  const isGenerating = status !== 'ready'
   const route = content
   const destination = itineraryData.destination || route?.destination || 'Destino'
 
   return (
     <div className="flex flex-col min-h-screen bg-[#FAFAF8]">
       
-      {/* 🔴 OBRIGATÓRIO PARA HIDRATAÇÃO */}
+      {/* 🔴 OBRIGATÓRIOS PARA HIDRATAÇÃO E GERAÇÃO */}
       <RealtimeTripListener tripId={id} currentStatus={status} />
+      <GenerationTrigger tripId={id} status={status} />
 
       {/* ─── HERO COMPACTO (MISSÃO 3) ─── */}
       <header className="w-full pt-10 pb-6 border-b border-border bg-[#FAFAF8]">
@@ -118,7 +120,11 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
               {isGenerating ? (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E8833A]/10 border border-[#E8833A]/20 text-[#E8833A] rounded-full text-sm font-bold animate-pulse">
                   <Sparkles className="h-4 w-4" />
-                  Mapeando dados...
+                  {status === 'analyzing' && "Analisando perfil..."}
+                  {status === 'mapping' && "Mapeando logística..."}
+                  {status === 'generating' && "IA construindo..."}
+                  {status === 'finishing' && "Finalizando..."}
+                  {!['analyzing', 'mapping', 'generating', 'finishing'].includes(status) && "Mapeando dados..."}
                 </div>
               ) : (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 text-green-700 rounded-full text-sm font-bold">
@@ -164,9 +170,19 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
                     <Sparkles className="h-8 w-8 text-[#E8833A]" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-xl font-heading font-bold text-foreground">Construindo seu Roteiro Inteligente</h3>
+                    <h3 className="text-xl font-heading font-bold text-foreground">
+                      {status === 'analyzing' && "Analisando seu Perfil de Viajante"}
+                      {status === 'mapping' && "Mapeando Logística Geográfica"}
+                      {status === 'generating' && "IA Waylo Construindo sua Jornada"}
+                      {status === 'finishing' && "Lapidando os Últimos Detalhes"}
+                      {!['analyzing', 'mapping', 'generating', 'finishing'].includes(status) && "Construindo seu Roteiro Inteligente"}
+                    </h3>
                     <p className="text-sm font-medium text-muted-foreground w-full max-w-sm mx-auto">
-                      A nossa IA está mapeando logística e os melhores pontos de interesse para criar sua jornada perfeita. Isso leva em média 25 segundos.
+                      {status === 'analyzing' && "Estamos processando seus desejos e restrições para garantir perfeição."}
+                      {status === 'mapping' && "Calculando rotas, tempos de deslocamento e proximidade de locais."}
+                      {status === 'generating' && "Nossa IA de elite está escolhendo cada experiência a dedo para você."}
+                      {status === 'finishing' && "Validando o roteiro final contra as regras de segurança e W.A.Y.L.O."}
+                      {!['analyzing', 'mapping', 'generating', 'finishing'].includes(status) && "Isso leva em média 25 segundos. Fique nesta tela."}
                     </p>
                   </div>
                 </div>

@@ -97,7 +97,9 @@ export default function WizardPage() {
         ? selections.dates.split(' a ') 
         : [selections.dates, selections.dates]
 
-      // 3. Criar registro inicial na tabela itineraries com status 'generating'
+      // 3. Criar registro inicial na tabela itineraries com status 'analyzing'
+      // O Hub (página /dashboard/viagem/[id]) irá detectar este status e 
+      // disparar a geração em background, garantindo que o redirect seja instantâneo.
       const { data: savedData, error } = await supabase
         .from('itineraries')
         .insert([{
@@ -109,7 +111,7 @@ export default function WizardPage() {
           rhythm: selections.pace,
           budget: selections.budget,
           content: { 
-            status: 'generating',
+            status: 'analyzing', // [V3.1] Gatilho para o Hub iniciar a IA
             dietary_restrictions: selections.dietary_restrictions,
             dealbreakers: selections.dealbreakers,
             vibes: selections.vibes,
@@ -123,11 +125,6 @@ export default function WizardPage() {
 
       // 4. Redirecionar IMEDIATAMENTE
       router.push(`/dashboard/viagem/${savedData.id}`)
-
-      // 5. Disparar a geração da IA em background (fire-and-forget real)
-      generateItinerary(savedData.id).catch(err => {
-        console.error('Erro silencioso na geração:', err)
-      })
       
     } catch (err: any) {
       const errorMessage = err?.message || err?.error_description || JSON.stringify(err, null, 2);

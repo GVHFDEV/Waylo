@@ -73,13 +73,9 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html
-      lang="pt-BR"
-      className={`${cabinetGrotesk.variable} ${satoshi.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
+    <html lang="pt-BR" className="h-full antialiased" suppressHydrationWarning>
       <body
-        className="min-h-full flex flex-col bg-background text-foreground"
+        className={`${cabinetGrotesk.variable} ${satoshi.variable} min-h-full flex flex-col bg-background text-foreground font-sans`}
         suppressHydrationWarning
       >
         {children}

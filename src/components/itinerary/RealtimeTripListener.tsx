@@ -24,11 +24,10 @@ export function RealtimeTripListener({ tripId, currentStatus }: { tripId: string
           filter: `id=eq.${tripId}`
         },
         (payload) => {
-          // Quando a IA terminar e o Supabase for atualizado, o payload chegará aqui
           const newStatus = payload.new.content?.status || 'generating';
-          if (newStatus === 'ready') {
-            console.log('✅ Roteiro gerado! Recarregando a página...')
-            // Atualiza a página atual no servidor recebendo os novos dados
+          // Se o status mudou em relação ao atual, damos refresh para mostrar o progresso
+          if (newStatus !== currentStatus) {
+            console.log(`🔄 Status atualizado: ${newStatus}. Recarregando...`)
             router.refresh()
           }
         }
