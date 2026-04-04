@@ -59,44 +59,39 @@ export async function generateItinerary(itineraryId?: string, formData?: any) {
   
   if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'mapping');
 
-  // PROMPT OTIMIZADO (COMPRESSÃO ~30%)
-  const prompt = `[W.A.Y.L.O. ENGINE V3.1 - HIGH PRECISION]
-You are a silent travel architect. Output ONLY raw JSON. No markdown. No preamble.
+  // [W.A.Y.L.O. ENGINE V3.2 - ULTRA-COMPRESSED DIRECT]
+  const prompt = `[SYSTEM: TRAVEL ARCHITECT | TONE: DIRECT ELITE CONCIERGE]
+Output ONLY raw JSON. No markdown. No preamble.
 
-[INPUT PROFILE]
+[PROFILE]
 Destino: ${payload.destination} | Datas: ${payload.dates}
 Ritmo: ${payload.pace} | Orçamento: ${payload.budget}
 Grupo: ${payload.companion} | Desejos: ${payload.additional_notes}
 Dealbreakers: ${payload.dealbreakers} | Vibe: ${payload.vibes}
 Dieta: ${payload.dietary_restrictions}
 
-[CRITICAL RULES]
-1. SUPREME DIRECTIVE: "Desejos" are laws. "Dealbreakers" are absolute bans. 
-2. ACCESSIBILITY: If mobility is a concern, use ONLY accessible venues.
-3. LANGUAGE: Keys in English. Values in pt-BR. Tone: Elite/Immersive.
-4. LOGISTICS: Every day MUST have "Manhã", "Tarde", "Noite". No city-cross commutes in 4h blocks.
-5. CULINARY: Real, verifiable places matching budget/diet. No generic names.
-6. ANCHORS: One "anchor" activity per day. If anchor > 5h, use overflow in next period.
-7. TIPS: 2+ specific, non-obvious, actionable "tip" items per day. No generic advice.
-8. BANNED: "Ir ao aeroporto", "Fazer malas", "Check-in", "Acordar cedo".
+[CRITICAL INSTRUCTIONS]
+1. ONE PLACE RULE: PROIBIDO sugerir múltiplos destinos geográficos numa única 'activity'. Cada item deve focar num único 'place_name' verificável. 
+2. BREVITY: Descrições: MÁXIMO 3 frases curtas e impactantes. Seja direto, elimine adjetivos excessivos.
+3. LOGISTICS: 3 períodos (Manhã, Tarde, Noite) por dia. Geograficamente agrupados (<15min trânsito).
+4. SUPREME: "Desejos" são leis. "Dealbreakers" são banimentos absolutos.
+5. LANGUAGE: Keys: English. Values: pt-BR.
+6. ANCHOR: Exactly 1 per day.
+7. TIPS: 2+ hacks locais acionáveis por dia.
 
 [SCHEMA]
 {
   "trip_summary": { "destination": "str", "total_days": 0, "dominant_vibe": "str", "important_notes": "str/null" },
-  "hotels": [{ "name": "EXACT", "neighborhood": "str", "reason": "str", "price_per_night": "str" }],
+  "hotels": [{ "name": "EXACT", "neighborhood": "str", "reason": "3 phrases max", "price_per_night": "str" }],
   "itinerary": [{
     "day": 1, "day_title": "str", "anchor": "str", "fatigue_level": "low/medium/high",
     "items": [
-      { "type": "activity", "period": "Manhã/Tarde/Noite", "description": "2-5 immersive sentences", "place_name": "EXACT", "estimated_cost": "str" },
+      { "type": "activity", "period": "Manhã/Tarde/Noite", "description": "Max 3 direct sentences", "place_name": "EXACT GOOGLE-READY", "estimated_cost": "str" },
       { "type": "tip", "content": "Dica do GUIA: [Actionable Insight]" }
     ]
   }]
 }
-
-[VERIFY BEFORE EXIT]
-- All place_names are Google Maps-ready.
-- All values in pt-BR.
-- No trailing commas. Valid JSON object.`;
+`;
 
   if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'generating');
 
