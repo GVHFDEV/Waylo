@@ -1,12 +1,12 @@
 'use server'
 
-import Groq from "groq-sdk";
+import { Mistral } from "@mistralai/mistralai";
 
 export async function generateItinerary(formData: any) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Chave de API do Groq não configurada.");
+  const apiKey = process.env.MISTRAL_API_KEY;
+  if (!apiKey) throw new Error("Chave de API da Mistral não configurada.");
 
-  const groq = new Groq({ apiKey });
+  const mistral = new Mistral({ apiKey });
 
   const prompt = `[SYSTEM IDENTITY & PRIME DIRECTIVE]
 
@@ -151,9 +151,9 @@ RULE SET Y: YIELD — VALUE OPTIMIZATION & INSIDER TIPS
          (d) HIGH-VALUE — saves money, time, or unlocks access others don't have.
 
          ✅ VALID TIP EXAMPLES:
-           - "💡 Dica W.A.Y.L.O.: No Museu XYZ, a entrada pela Rua [Nome] tem fila 70% menor. Chegar às 9h15 garante as primeiras salas sem multidão."
-           - "💡 Dica W.A.Y.L.O.: O menu secreto do [Restaurante Específico] inclui o 'Omakase do Chef' — não está no cardápio impresso, mas qualquer garçom honrará o pedido."
-           - "💡 Dica W.A.Y.L.O.: O app [Nome Real do App] permite reservar o trem expresso com 48h de antecedência. Sem fila, assento garantido."
+           - "Dica do GUIA: No Museu XYZ, a entrada pela Rua [Nome] tem fila 70% menor. Chegar às 9h15 garante as primeiras salas sem multidão."
+           - "Dica do GUIA: O menu secreto do [Restaurante Específico] inclui o 'Omakase do Chef' — não está no cardápio impresso, mas qualquer garçom honrará o pedido."
+           - "Dica do GUIA: O app [Nome Real do App] permite reservar o trem expresso com 48h de antecedência. Sem fila, assento garantido."
 
          ❌ FORBIDDEN TIP EXAMPLES (automatic rejection):
            - "Use protetor solar" — generic health advice.
@@ -259,7 +259,7 @@ All values must be in Brazilian Portuguese (pt-BR) unless a field specifies othe
         },
         {
           "type": "tip",
-          "content": "💡 Dica W.A.Y.L.O.: [HACK LOCAL ESPECÍFICO, ACIONÁVEL E DE ALTO VALOR em pt-BR]"
+          "content": "Dica do GUIA: [HACK LOCAL ESPECÍFICO, ACIONÁVEL E DE ALTO VALOR em pt-BR]"
         },
         {
           "type": "activity",
@@ -270,7 +270,7 @@ All values must be in Brazilian Portuguese (pt-BR) unless a field specifies othe
         },
         {
           "type": "tip",
-          "content": "💡 Dica W.A.Y.L.O.: ..."
+          "content": "Dica do GUIA: ..."
         },
         {
           "type": "activity",
@@ -307,11 +307,27 @@ If any check fails: silently correct it before outputting.
 
 Silent computation complete. Output the JSON. Nothing else.`;
 
-  const chatCompletion = await groq.chat.completions.create({
-    messages: [{ role: "user", content: prompt }],
-    model: "llama-3.3-70b-versatile",
-    response_format: { type: "json_object" },
+  const response = await mistral.chat.complete({
+    model: "mistral-large-latest",
+    temperature: 0.4,
+    maxTokens: 16000,
+    responseFormat: { type: "json_object" },
+    messages: [
+      { role: "system", content: prompt },
+      { role: "user", content: "Generate the itinerary now based on the provided logs and rules." }
+    ],
   });
 
-  return JSON.parse(chatCompletion.choices[0]?.message?.content || "{}");
+  const content = response.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Motor Mistral falhou ao gerar conteúdo.");
+
+  try {
+    return JSON.parse(typeof content === 'string' ? content : JSON.stringify(content));
+  } catch (e) {
+    console.error("Erro ao parsear JSON da Mistral:", e);
+    // Fallback simples se o parse falhar
+    const match = (content as string).match(/\{[\s\S]*\}/);
+    if (match) return JSON.parse(match[0]);
+    throw e;
+  }
 }

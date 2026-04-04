@@ -1,6 +1,6 @@
 'use server'
 
-import Groq from "groq-sdk";
+import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@/lib/supabase/server";
 
 export async function regenerateActivity(
@@ -16,10 +16,10 @@ export async function regenerateActivity(
     period: string
   }
 ) {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error("Chave de API do Groq não configurada.");
+  const apiKey = process.env.MISTRAL_API_KEY;
+  if (!apiKey) throw new Error("Chave de API da Mistral não configurada.");
 
-  const groq = new Groq({ apiKey });
+  const mistral = new Mistral({ apiKey });
   const supabase = await createClient();
 
   // 1. Buscar o roteiro atual para garantir que temos os dados frescos
@@ -64,14 +64,18 @@ Retorne APENAS um objeto JSON puro no formato abaixo:
 }
 `;
 
-  const chatCompletion = await groq.chat.completions.create({
+  const response = await mistral.chat.complete({
+    model: "mistral-large-latest",
+    temperature: 0.4,
+    maxTokens: 2000,
+    responseFormat: { type: "json_object" },
     messages: [{ role: "user", content: prompt }],
-    model: "llama-3.3-70b-versatile",
-    response_format: { type: "json_object" },
   });
 
-  const newActivityRaw = chatCompletion.choices[0]?.message?.content || "{}";
-  const newActivity = JSON.parse(newActivityRaw);
+  const content = response.choices?.[0]?.message?.content;
+  if (!content) throw new Error("Motor Mistral falhou ao gerar nova atividade.");
+
+  const newActivity = JSON.parse(typeof content === 'string' ? content : JSON.stringify(content));
 
   // 2. Atualizar o objeto de conteúdo localmente
   const updatedContent = { ...itineraryData.content };
