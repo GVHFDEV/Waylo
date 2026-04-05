@@ -6,8 +6,8 @@ import { z } from 'zod';
  * strictly follows the defined contracts.
  */
 
-export const PeriodSchema = z.enum(['Manhã', 'Tarde', 'Noite']);
-export const FatigueLevelSchema = z.enum(['low', 'medium', 'high']);
+export const PeriodSchema = z.string();
+export const FatigueLevelSchema = z.string();
 
 export const TripSummarySchema = z.object({
   destination: z.string().min(1),
@@ -26,14 +26,14 @@ export const HotelSchema = z.object({
 export const ActivitySchema = z.object({
   type: z.literal('activity'),
   period: PeriodSchema,
-  description: z.string().min(10),
+  description: z.string(),
   place_name: z.string().min(1),
   estimated_cost: z.string(),
 });
 
 export const TipSchema = z.object({
   type: z.literal('tip'),
-  content: z.string().min(5),
+  content: z.string(),
 });
 
 export const ItineraryItemSchema = z.discriminatedUnion('type', [

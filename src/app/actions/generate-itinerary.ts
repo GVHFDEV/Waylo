@@ -64,7 +64,7 @@ export async function generateItinerary(itineraryId?: string, formData?: any) {
 Output ONLY raw JSON. No markdown.
 
 [CRITICAL INSTRUCTIONS]
-1. LANGUAGE: Keys in English. Values in ${userLanguage}.
+1. LANGUAGE: The JSON KEYS MUST BE IN ENGLISH STRICTLY AS DEFINED IN THE SCHEMA. The JSON VALUES MUST BE IN ${userLanguage}.
 2. HOTEL ÂNCORA: ${payload.selected_hotel || 'A definir'}.
 3. LEI DO LOCAL ÚNICO: Cada activity deve ter EXATAMENTE UM place_name geográfico.
 4. MAX BREVITY: Descrições em no máximo 2 frases diretas.
@@ -91,27 +91,30 @@ Grupo: ${payload.companion} | Desejos: ${payload.additional_notes}
 
   if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'generating');
 
-  const response = await mistral.chat.complete({
-    model: "mistral-large-latest",
-    temperature: 0.3,
-    responseFormat: { type: "json_object" },
-    messages: [
-      { role: "system", content: prompt },
-      { role: "user", content: `Generate JSON in ${userLanguage}. Include hotel anchor: ` + (payload.selected_hotel || "Not defined.") }
-    ],
-  });
-
-  const content = response.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Motor falhou.");
-
-  if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'finishing');
-
   try {
+    const response = await mistral.chat.complete({
+      model: "mistral-large-latest",
+      temperature: 0.3,
+      responseFormat: { type: "json_object" },
+      messages: [
+        { role: "system", content: prompt },
+        { role: "user", content: `Generate JSON in ${userLanguage}. Include hotel anchor: ` + (payload.selected_hotel || "Not defined.") }
+      ],
+    });
+
+    const content = response.choices?.[0]?.message?.content;
+    if (!content) throw new Error("Motor falhou.");
+
+    if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'finishing');
+
     const rawContent = typeof content === 'string' ? content : JSON.stringify(content);
     const parsedJSON = JSON.parse(rawContent);
     const validation = ItineraryResponseSchema.safeParse(parsedJSON);
     
-    if (!validation.success) throw new Error("Estrutura inválida.");
+    if (!validation.success) {
+      console.error("Zod Validation Error:", validation.error);
+      throw new Error("Estrutura inválida.");
+    }
 
     if (itineraryId && supabase) {
       const { data: currentTrip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
@@ -120,5 +123,11 @@ Grupo: ${payload.companion} | Desejos: ${payload.additional_notes}
       console.log(`🟢 [SERVER] Geração concluída (${userLanguage}).`);
     }
     return validation.data;
-  } catch (e) { throw e; }
+  } catch (e: any) {
+    console.error("Erro na geração do itinerário:", e);
+    if (itineraryId && supabase) {
+      await updateStatus(supabase, itineraryId, 'error');
+    }
+    throw e;
+  }
 }

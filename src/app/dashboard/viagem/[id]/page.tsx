@@ -82,7 +82,11 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
             </div>
             
             <div>
-              {isGenerating ? (
+              {status === 'error' ? (
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 text-red-700 rounded-full text-sm font-bold">
+                  ⚠️ Erro na Geração
+                </div>
+              ) : isGenerating ? (
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#E8833A]/10 border border-[#E8833A]/20 text-[#E8833A] rounded-full text-sm font-bold animate-pulse">
                   <Sparkles className="h-4 w-4" />
                   {status === 'analyzing' && t.hub.status.analyzing}
@@ -125,7 +129,33 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
           </div>
 
           <TabsContent value="itinerario" className="space-y-12">
-            {isGenerating ? (
+            {status === 'error' ? (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="bg-red-50/50 rounded-2xl border-2 border-dashed border-red-200 p-8 flex flex-col items-center justify-center text-center space-y-4">
+                  <div className="h-16 w-16 bg-red-100 border border-red-200 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">⚠️</span>
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-heading font-bold text-red-800">
+                      Ocorreu um erro na construção do roteiro
+                    </h3>
+                    <p className="text-red-700 text-sm max-w-md mx-auto">
+                      Nossa inteligência artificial encontrou uma inconsistência nos dados ou o servidor excedeu o tempo limite.
+                    </p>
+                  </div>
+                  <form action={async () => {
+                    "use server"
+                    const sup = await createClient()
+                    const { data: current } = await sup.from('itineraries').select('content').eq('id', id).single()
+                    await sup.from('itineraries').update({ content: { ...current?.content, status: 'analyzing' } }).eq('id', id)
+                  }}>
+                    <Button type="submit" variant="destructive" className="font-bold flex items-center gap-2 rounded-xl mt-4">
+                      Tentar Novamente
+                    </Button>
+                  </form>
+                </div>
+              </div>
+            ) : isGenerating ? (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="bg-white rounded-2xl border-2 border-dashed border-[#E8833A]/30 p-8 flex flex-col items-center justify-center text-center space-y-4">
                   <div className="h-16 w-16 bg-[#E8833A]/10 border border-[#E8833A]/20 rounded-full flex items-center justify-center animate-pulse">
