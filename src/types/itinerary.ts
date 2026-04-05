@@ -3,8 +3,8 @@
  * Rigorous typing for the W.A.Y.L.O. Engine output.
  */
 
-export type Period = 'Manhã' | 'Tarde' | 'Noite';
-export type FatigueLevel = 'low' | 'medium' | 'high';
+export type Period = string;
+export type FatigueLevel = string;
 
 export interface TripSummary {
   destination: string;

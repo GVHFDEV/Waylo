@@ -41,13 +41,15 @@ function RatingStars({ rating }: { rating: number | null }) {
 /* COMPONENTE PRINCIPAL (CLIENT)                                         */
 /* ═══════════════════════════════════════════════════════════════════════ */
 
-export function ActivityCard({ activity, destination, isLast, itineraryId, dayIdx, itemIdx, userPreferences }: any) {
+export function ActivityCard({ item, destination, isLast, itineraryId, dayIdx, itemIdx, userPreferences }: any) {
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [fsq, setFsq] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 
+  const activity = item || {}
+  const isTip = activity.type === 'tip'
   const placeName = activity.place_name || activity.location || ''
-  const description = activity.description || ''
+  const description = activity.description || activity.content || ''
 
   useEffect(() => {
     async function loadData() {
@@ -78,7 +80,31 @@ export function ActivityCard({ activity, destination, isLast, itineraryId, dayId
   }, [placeName, destination, description])
 
   const displayImage = imageUrl || `https://picsum.photos/seed/${simpleHash(placeName)}/800/400`
-  const mapsUrl = fsq?.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeName + ' ' + destination)}`
+  const mapsUrl = fsq?.mapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(placeName + ' ' + (destination || ''))}`
+
+  if (isTip) {
+    return (
+      <div className="relative flex gap-5 md:gap-7">
+        <div className="flex flex-col items-center shrink-0 pt-2">
+          <div className="h-3 w-3 rounded-full bg-accent border-[2px] border-background ring-2 ring-border z-10 shrink-0" />
+          {!isLast && <div className="w-px flex-1 bg-border mt-1" />}
+        </div>
+        <div className="flex-1 pb-8">
+          <div className="bg-[#E8833A]/5 rounded-2xl border-2 border-[#E8833A]/20 p-5 md:p-6 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="bg-white p-2 rounded-xl shadow-sm border border-border shrink-0">
+                <Sparkles className="h-5 w-5 text-[#E8833A]" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-[#E8833A] text-sm font-bold font-heading mb-1 uppercase tracking-widest">Waylo Tip</h4>
+                <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="relative flex gap-5 md:gap-7">
@@ -114,12 +140,12 @@ export function ActivityCard({ activity, destination, isLast, itineraryId, dayId
                 dayIdx={dayIdx} 
                 itemIdx={itemIdx} 
                 context={{ 
-                  destination, 
-                  budget: userPreferences.budget, 
-                  dietary: userPreferences.dietary, 
-                  dealbreakers: userPreferences.dealbreakers, 
+                  destination: destination || '', 
+                  budget: userPreferences?.budget || '', 
+                  dietary: userPreferences?.dietary || '', 
+                  dealbreakers: userPreferences?.dealbreakers || '', 
                   rejectedActivity: placeName, 
-                  period: activity.period 
+                  period: activity?.period || '' 
                 }} 
               />
             </div>
