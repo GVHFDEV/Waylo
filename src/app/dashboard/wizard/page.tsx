@@ -36,7 +36,9 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/input'
 import { getLanguageByCountry, getI18n, type LangCode } from '@/lib/i18n'
 
-export default function WizardPage() {
+import { Suspense } from 'react'
+
+function WizardPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -411,5 +413,17 @@ export default function WizardPage() {
         </Button>
       </div>
     </div>
+  )
+}
+
+export default function WizardPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    }>
+      <WizardPageContent />
+    </Suspense>
   )
 }
