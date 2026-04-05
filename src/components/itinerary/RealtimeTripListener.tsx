@@ -10,6 +10,7 @@ export function RealtimeTripListener({ tripId, currentStatus }: { tripId: string
   const supabase = createClient()
 
   useEffect(() => {
+    console.log("🛠️ [DEBUG] Listener Montado para ID:", tripId)
     // Se a viagem já estiver pronta, não precisamos escutar alterações
     if (currentStatus === 'ready') return;
 
@@ -27,12 +28,14 @@ export function RealtimeTripListener({ tripId, currentStatus }: { tripId: string
           const newStatus = payload.new.content?.status || 'generating';
           // Se o status mudou em relação ao atual, damos refresh para mostrar o progresso
           if (newStatus !== currentStatus) {
-            console.log(`🔄 Status atualizado: ${newStatus}. Recarregando...`)
+            console.log("🛰️ [CLIENT] Supabase detectou mudança: " + newStatus)
             router.refresh()
           }
         }
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log("📡 [DEBUG] Status da Conexão:", status)
+      })
 
     return () => {
       supabase.removeChannel(channel)

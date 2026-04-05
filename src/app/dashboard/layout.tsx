@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Search, Map, Plus, User } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 
 /**
  * Layout do Dashboard do Waylo (Refatorado - Missão 06).
@@ -62,12 +63,7 @@ export default function DashboardLayout({
             
             <Separator orientation="vertical" className="h-6 mx-2" />
 
-            <div className="flex items-center space-x-3 cursor-pointer group">
-              <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
-                <User className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-sm font-medium text-foreground">Perfil</span>
-            </div>
+            <ProfileDropdown />
           </nav>
         </div>
       </header>

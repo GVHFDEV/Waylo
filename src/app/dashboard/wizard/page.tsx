@@ -25,7 +25,9 @@ import {
   Music,
   ShoppingBag,
   Palmtree,
-  Mountain
+  Mountain,
+  BedDouble,
+  MapPin
 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 
@@ -33,16 +35,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
-import { generateItinerary } from '@/app/actions/generate-itinerary'
 import { createClient } from '@/lib/supabase/client'
-import { DatePickerWithRange } from '@/components/dashboard/date-range-picker'
 import { Input } from '@/components/ui/input'
-import { MapPin } from 'lucide-react'
 
 /**
  * Wizard de Onboarding da IA (O "Quebra-cabeça").
  * 
- * Fluxo de 3 passos para personalização do roteiro mágico.
+ * Fluxo de 8 passos para personalização do roteiro mágico.
  * Design premium com tipografia Cabinet Grotesk e cores Âmbar.
  */
 export default function WizardPage() {
@@ -61,12 +60,13 @@ export default function WizardPage() {
     additional_notes: '',
     vibes: '',
     dealbreakers: '',
-    dietary_restrictions: ''
+    dietary_restrictions: '',
+    selected_hotel: '' // [V3.3] Novo Campo Âncora Logística
   })
   const [hasMobility, setHasMobility] = useState(false)
   const [dietaryText, setDietaryText] = useState('')
 
-  const totalSteps = 7
+  const totalSteps = 8
   const progressValue = (step / totalSteps) * 100
 
   // --- HANDLERS ---
@@ -75,7 +75,7 @@ export default function WizardPage() {
   }
 
   const handleNext = () => {
-    if (step < 7) setStep(step + 1)
+    if (step < totalSteps) setStep(step + 1)
     else handleFinish()
   }
 
@@ -89,17 +89,13 @@ export default function WizardPage() {
     const supabase = createClient()
 
     try {
-      // 1. Obter o usuário atual
       const { data: { user } } = await supabase.auth.getUser()
 
-      // 2. Preparar as datas (com fallback seguro)
       const dateParts = selections.dates.includes(' a ') 
         ? selections.dates.split(' a ') 
         : [selections.dates, selections.dates]
 
-      // 3. Criar registro inicial na tabela itineraries com status 'analyzing'
-      // O Hub (página /dashboard/viagem/[id]) irá detectar este status e 
-      // disparar a geração em background, garantindo que o redirect seja instantâneo.
+      // [MISSION 03] Salvando selected_hotel no content
       const { data: savedData, error } = await supabase
         .from('itineraries')
         .insert([{
@@ -111,35 +107,31 @@ export default function WizardPage() {
           rhythm: selections.pace,
           budget: selections.budget,
           content: { 
-            status: 'analyzing', // [V3.1] Gatilho para o Hub iniciar a IA
+            status: 'analyzing',
             dietary_restrictions: selections.dietary_restrictions,
             dealbreakers: selections.dealbreakers,
             vibes: selections.vibes,
-            additional_notes: selections.additional_notes 
+            additional_notes: selections.additional_notes,
+            selected_hotel: selections.selected_hotel // Salvando âncora
           }
         }])
         .select()
         .single()
 
       if (error) throw error
-
-      // 4. Redirecionar IMEDIATAMENTE
       router.push(`/dashboard/viagem/${savedData.id}`)
       
     } catch (err: any) {
-      const errorMessage = err?.message || err?.error_description || JSON.stringify(err, null, 2);
-      console.error('ERRO AO SALVAR ROTEIRO:', errorMessage);
-      alert(`Falha ao salvar: ${errorMessage}`);
+      console.error('ERRO AO SALVAR ROTEIRO:', err);
+      alert(`Falha ao salvar: ${err.message}`);
       setIsLoading(false);
     }
   }
 
-  // --- RENDER HELPERS ---
   const isSelected = (key: string, value: string) => selections[key as keyof typeof selections] === value
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 space-y-10">
-      {/* 1. BARRA DE PROGRESSO */}
       <div className="space-y-2">
         <div className="flex justify-between items-end">
           <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Passo {step} de {totalSteps}</span>
@@ -153,7 +145,6 @@ export default function WizardPage() {
         </div>
       </div>
 
-      {/* 2. CONTEÚDO DO PASSO */}
       <div className="min-h-[400px] animate-in slide-in-from-right-4 fade-in duration-300">
         {step === 1 && (
           <div className="space-y-8">
@@ -161,7 +152,6 @@ export default function WizardPage() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Com quem você vai viajar?</h1>
               <p className="text-muted-foreground font-sans">Isso nos ajuda a escolher os melhores lugares e atividades.</p>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               {[
                 { id: 'solo', label: 'Sozinho', icon: User },
@@ -196,7 +186,6 @@ export default function WizardPage() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Qual o ritmo da viagem?</h1>
               <p className="text-muted-foreground font-sans">Quantas atividades você aguenta em um dia?</p>
             </div>
-
             <div className="grid grid-cols-1 gap-4">
               {[
                 { id: 'relax', label: 'Relaxado', desc: 'Acorde tarde, aproveite longos cafés e veja tudo sem pressa.', icon: Clock },
@@ -233,7 +222,6 @@ export default function WizardPage() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Qual o seu orçamento?</h1>
               <p className="text-muted-foreground font-sans">Isso definirá as sugestões de hotéis e experiências.</p>
             </div>
-
             <div className="grid grid-cols-1 gap-6">
               {[
                 { id: 'budget', label: 'Econômico', price: '$', desc: 'Foco em custo-benefício, hostels premium e comida local.', icon: Wallet },
@@ -273,7 +261,6 @@ export default function WizardPage() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">A Vibe da Viagem</h1>
               <p className="text-muted-foreground font-sans">Selecione os estilos que mais combinam com este roteiro.</p>
             </div>
-
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {[
                 { id: 'cultura', label: 'Cultura & História', icon: Palette },
@@ -285,7 +272,6 @@ export default function WizardPage() {
               ].map((opt) => {
                 const selectedList = selections.vibes.split(',').filter(Boolean)
                 const isItemSelect = selectedList.includes(opt.id)
-                
                 return (
                   <Card
                     key={opt.id}
@@ -320,10 +306,9 @@ export default function WizardPage() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Acessibilidade & Dieta</h1>
               <p className="text-muted-foreground font-sans">Garantimos que cada parada seja segura e confortável para todos.</p>
             </div>
-
             <div className="space-y-6">
               <div className="space-y-3">
-                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 font-heading">
                   <Accessibility className="h-4 w-4" /> Restrições de Mobilidade?
                 </label>
                 <div className="flex gap-4">
@@ -349,9 +334,8 @@ export default function WizardPage() {
                   ))}
                 </div>
               </div>
-
               <div className="space-y-3">
-                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                <label className="text-sm font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 font-heading">
                   <Utensils className="h-4 w-4" /> Restrições Alimentares?
                 </label>
                 <Input
@@ -375,18 +359,13 @@ export default function WizardPage() {
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Preferências de Exclusão</h1>
               <p className="text-muted-foreground font-sans">Existem tipos de lugares ou atividades que você prefere evitar nesta viagem?</p>
             </div>
-
             <div className="space-y-4">
               <textarea
                 className="w-full min-h-[180px] p-6 rounded-2xl border-2 border-border bg-background font-sans text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none placeholder:text-muted-foreground/50"
-                placeholder="Ex: Prefiro evitar museus, não gosto de frutos do mar, evitar atividades com altura..."
+                placeholder="Ex: Prefiro evitar museus, não gosto de frutos do mar..."
                 value={selections.dealbreakers}
                 onChange={(e) => handleSelect('dealbreakers', e.target.value)}
               />
-              <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
-                <Sparkles className="h-3 w-3 text-primary" />
-                <span>Sua inteligência de viagem personalizada levará isso em conta.</span>
-              </div>
             </div>
           </div>
         )}
@@ -395,31 +374,61 @@ export default function WizardPage() {
           <div className="space-y-8">
             <div className="space-y-2">
               <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground">Sua Visão</h1>
-              <p className="text-muted-foreground font-sans">Conte-nos sobre desejos específicos (ex: "Almoçar de frente para a Torre").</p>
+              <p className="text-muted-foreground font-sans">Conte-nos sobre desejos específicos para sua roteiro.</p>
             </div>
-
             <div className="space-y-4">
               <textarea
                 className="w-full min-h-[200px] p-6 rounded-2xl border-2 border-border bg-background font-sans text-foreground focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all resize-none placeholder:text-muted-foreground/50"
-                placeholder="Ex: Quero focar em cafés históricos, evitar ladeiras e obrigatoriamente visitar a Torre Eiffel à noite..."
+                placeholder="Ex: Quero focar em cafés históricos, evitar ladeiras..."
                 value={selections.additional_notes}
                 onChange={(e) => handleSelect('additional_notes', e.target.value)}
               />
-              <div className="flex items-center gap-2 text-xs text-muted-foreground px-2">
-                <Sparkles className="h-3 w-3 text-primary" />
-                <span>Sua inteligência de viagem personalizada.</span>
+            </div>
+          </div>
+        )}
+
+        {/* [MISSION 03] Passo 8: Seleção de Hotel */}
+        {step === 8 && (
+          <div className="space-y-8">
+             <div className="space-y-2">
+              <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground animate-in slide-in-from-top-4">Âncora de Hospedagem</h1>
+              <p className="text-muted-foreground font-sans">Onde você pretende se hospedar? Usaremos isso como base logística.</p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <label className="text-sm font-bold uppercase tracking-widest text-[#E8833A] flex items-center gap-2 font-heading">
+                  <BedDouble className="h-4 w-4" /> Nome do Hotel
+                </label>
+                <div className="relative group">
+                  <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-[#E8833A] transition-colors" />
+                  <Input
+                    placeholder="Ex: Ritz Paris, Intercontinental Roma..."
+                    className="h-16 pl-12 rounded-2xl border-2 border-border focus-visible:ring-[#E8833A] focus-visible:border-[#E8833A] font-sans text-lg bg-white/50 backdrop-blur-sm"
+                    value={selections.selected_hotel}
+                    onChange={(e) => handleSelect('selected_hotel', e.target.value)}
+                  />
+                </div>
               </div>
+
+              <Card className="bg-amber-50/50 border-amber-100 rounded-2xl">
+                <CardContent className="pt-4 flex gap-3 items-center">
+                  <Sparkles className="h-5 w-5 text-[#E8833A] shrink-0" />
+                  <p className="text-sm text-amber-800 font-medium">
+                    "Você poderá alterar o hotel depois, e o roteiro se ajustará automaticamente."
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         )}
       </div>
 
-      {/* 3. NAVEGAÇÃO */}
       <div className="flex pt-6 border-t border-border justify-between items-center">
         <Button
           variant="ghost"
           onClick={handleBack}
-          className="font-bold text-muted-foreground hover:text-foreground"
+          className="font-bold text-muted-foreground hover:text-foreground h-12 rounded-xl"
         >
           <ChevronLeft className="mr-2 h-4 w-4" />
           Voltar
@@ -432,18 +441,19 @@ export default function WizardPage() {
             (step === 1 && !selections.companion) ||
             (step === 2 && !selections.pace) ||
             (step === 3 && !selections.budget) ||
-            (step === 4 && !selections.vibes)
+            (step === 4 && !selections.vibes) ||
+            (step === 8 && !selections.selected_hotel) // [V3.3] Trava
           }
-          className="font-bold min-w-[140px] h-12 rounded-xl shadow-lg shadow-primary/20"
+          className="font-bold min-w-[140px] h-12 rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
         >
-          {step === 7 ? (
+          {step === 8 ? (
             <>
-              {isLoading ? 'Iniciando...' : 'Gerar Roteiro'}
+              {isLoading ? 'Relatando GPS...' : 'Confirmar e Gerar'}
               {isLoading ? <Loader2 className="ml-2 h-4 w-4 animate-spin" /> : <Sparkles className="ml-2 h-4 w-4" />}
             </>
           ) : (
             <>
-              Próximo
+              {step === 7 ? 'Último Passo' : 'Próximo'}
               <ChevronRight className="ml-2 h-4 w-4" />
             </>
           )}

@@ -3,37 +3,37 @@
 import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@/lib/supabase/server";
 import { ItineraryResponseSchema } from "@/lib/schemas/itinerary";
+import { getLanguageByCountry } from "@/lib/i18n";
 
-/**
- * Helper para atualizar o status granular no banco de dados.
- */
 async function updateStatus(supabase: any, id: string, status: string) {
   const { data: current } = await supabase.from('itineraries').select('content').eq('id', id).single();
   const content = current?.content || {};
-  await supabase
-    .from('itineraries')
-    .update({ content: { ...content, status } })
-    .eq('id', id);
+  await supabase.from('itineraries').update({ content: { ...content, status } }).eq('id', id);
 }
 
 export async function generateItinerary(itineraryId?: string, formData?: any) {
   const apiKey = process.env.MISTRAL_API_KEY;
-  if (!apiKey) throw new Error("Chave de API da Mistral não configurada.");
+  if (!apiKey) throw new Error("Chave de API não configurada.");
 
   const mistral = new Mistral({ apiKey });
   const supabase = itineraryId ? await createClient() : null;
 
-  // [V3.1] Trava de Concorrência: Só gera se o status for 'analyzing'
+  // [V2.0] Idioma Adaptativo
+  let userLanguage = 'Português (Brasil)';
+  if (itineraryId && supabase) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase.from('profiles').select('country').eq('id', user.id).single();
+      const langCode = getLanguageByCountry(profile?.country || 'BR');
+      userLanguage = langCode === 'pt' ? 'Português (Brasil)' : 'English';
+    }
+  }
+
   if (itineraryId && supabase) {
     const { data: trip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
-    const currentStatus = trip?.content?.status;
-    
-    // Se já estiver além do 'analyzing', ignoramos o novo gatilho
-    if (currentStatus && currentStatus !== 'analyzing') {
-      console.log(`[WAYLO] Geração já em andamento ou finalizada para ${itineraryId} (Status: ${currentStatus}). Abortando duplicata.`);
-      return trip?.content;
+    if (trip?.content?.status && (trip?.content?.status === 'generating' || trip?.content?.status === 'finishing' || trip?.content?.status === 'ready')) {
+       return trip?.content;
     }
-    
     await updateStatus(supabase, itineraryId, 'analyzing');
   }
 
@@ -44,50 +44,45 @@ export async function generateItinerary(itineraryId?: string, formData?: any) {
       payload = {
         destination: trip.destination,
         dates: `${trip.start_date} a ${trip.end_date}`,
-        pace: trip.rhythm,
-        budget: trip.budget,
+        pace: trip.rhythm, budget: trip.budget,
         companion: trip.companion,
         additional_notes: trip.content?.additional_notes,
         dealbreakers: trip.content?.dealbreakers,
         vibes: trip.content?.vibes,
-        dietary_restrictions: trip.content?.dietary_restrictions
+        dietary_restrictions: trip.content?.dietary_restrictions,
+        selected_hotel: trip.content?.selected_hotel
       };
     }
   }
 
-  if (!payload) throw new Error("Dados não encontrados para geração.");
-  
+  if (!payload) throw new Error("Dados não encontrados.");
   if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'mapping');
 
-  // [W.A.Y.L.O. ENGINE V3.2 - ULTRA-COMPRESSED DIRECT]
-  const prompt = `[SYSTEM: TRAVEL ARCHITECT | TONE: DIRECT ELITE CONCIERGE]
-Output ONLY raw JSON. No markdown. No preamble.
+  // [W.A.Y.L.O. ENGINE V3.4 - MULTI-LANGUAGE | ELITE CONCIERGE]
+  const prompt = `[SYSTEM: TRAVEL ARCHITECT | TONE: ELITE CONCIERGE]
+Output ONLY raw JSON. No markdown.
+
+[CRITICAL INSTRUCTIONS]
+1. LANGUAGE: Keys in English. Values in ${userLanguage}.
+2. HOTEL ÂNCORA: ${payload.selected_hotel || 'A definir'}.
+3. LEI DO LOCAL ÚNICO: Cada activity deve ter EXATAMENTE UM place_name geográfico.
+4. MAX BREVITY: Descrições em no máximo 2 frases diretas.
+5. NO MARKDOWN: Texto puro apenas.
 
 [PROFILE]
 Destino: ${payload.destination} | Datas: ${payload.dates}
 Ritmo: ${payload.pace} | Orçamento: ${payload.budget}
 Grupo: ${payload.companion} | Desejos: ${payload.additional_notes}
-Dealbreakers: ${payload.dealbreakers} | Vibe: ${payload.vibes}
-Dieta: ${payload.dietary_restrictions}
-
-[CRITICAL INSTRUCTIONS]
-1. ONE PLACE RULE: PROIBIDO sugerir múltiplos destinos geográficos numa única 'activity'. Cada item deve focar num único 'place_name' verificável. 
-2. BREVITY: Descrições: MÁXIMO 3 frases curtas e impactantes. Seja direto, elimine adjetivos excessivos.
-3. LOGISTICS: 3 períodos (Manhã, Tarde, Noite) por dia. Geograficamente agrupados (<15min trânsito).
-4. SUPREME: "Desejos" são leis. "Dealbreakers" são banimentos absolutos.
-5. LANGUAGE: Keys: English. Values: pt-BR.
-6. ANCHOR: Exactly 1 per day.
-7. TIPS: 2+ hacks locais acionáveis por dia.
 
 [SCHEMA]
 {
   "trip_summary": { "destination": "str", "total_days": 0, "dominant_vibe": "str", "important_notes": "str/null" },
-  "hotels": [{ "name": "EXACT", "neighborhood": "str", "reason": "3 phrases max", "price_per_night": "str" }],
+  "hotels": [{ "name": "EXACT", "neighborhood": "str", "reason": "2 sentences max", "price_per_night": "str" }],
   "itinerary": [{
     "day": 1, "day_title": "str", "anchor": "str", "fatigue_level": "low/medium/high",
     "items": [
-      { "type": "activity", "period": "Manhã/Tarde/Noite", "description": "Max 3 direct sentences", "place_name": "EXACT GOOGLE-READY", "estimated_cost": "str" },
-      { "type": "tip", "content": "Dica do GUIA: [Actionable Insight]" }
+      { "type": "activity", "period": "Manhã/Tarde/Noite", "description": "Max 1-2 direct sentences", "place_name": "EXACT GOOGLE-READY", "estimated_cost": "str" },
+      { "type": "tip", "content": "Dica: [Actionable Insight]" }
     ]
   }]
 }
@@ -101,12 +96,12 @@ Dieta: ${payload.dietary_restrictions}
     responseFormat: { type: "json_object" },
     messages: [
       { role: "system", content: prompt },
-      { role: "user", content: "Generate the itinerary JSON now." }
+      { role: "user", content: `Generate JSON in ${userLanguage}. Include hotel anchor: ` + (payload.selected_hotel || "Not defined.") }
     ],
   });
 
   const content = response.choices?.[0]?.message?.content;
-  if (!content) throw new Error("Motor Mistral falhou.");
+  if (!content) throw new Error("Motor falhou.");
 
   if (itineraryId && supabase) await updateStatus(supabase, itineraryId, 'finishing');
 
@@ -115,19 +110,14 @@ Dieta: ${payload.dietary_restrictions}
     const parsedJSON = JSON.parse(rawContent);
     const validation = ItineraryResponseSchema.safeParse(parsedJSON);
     
-    if (!validation.success) throw new Error("Erro na estrutura da IA.");
+    if (!validation.success) throw new Error("Estrutura inválida.");
 
     if (itineraryId && supabase) {
-      const { data: trip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
-      await supabase
-        .from('itineraries')
-        .update({ content: { ...(trip?.content || {}), ...validation.data, status: 'ready' } })
-        .eq('id', itineraryId);
+      const { data: currentTrip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
+      const finalContent = { ...currentTrip?.content, ...validation.data, status: 'ready' };
+      await supabase.from('itineraries').update({ content: finalContent }).eq('id', itineraryId);
+      console.log(`🟢 [SERVER] Geração concluída (${userLanguage}).`);
     }
-
     return validation.data;
-  } catch (e) {
-    console.error("Erro Final:", e);
-    throw e;
-  }
+  } catch (e) { throw e; }
 }
