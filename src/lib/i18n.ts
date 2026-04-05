@@ -1,92 +1,649 @@
 /**
- * Dicionário de Internacionalização da Waylo (i18n)
- * Suporte Inicial: PT-BR e EN-US
+ * Waylo i18n — Dicionário Multilíngue Completo
+ * Cobertura: Login, Onboarding, Dashboard, Wizard, Hub, ConciergeModal, Geração IA
+ * 
+ * Idiomas: PT, EN, ES, FR, DE, IT, JA, AR (Argentina)
  */
 
+export type LangCode = 'pt' | 'en' | 'es' | 'fr' | 'de' | 'it' | 'ja'
+
+type Dictionary = typeof i18n.pt
+
 export const i18n = {
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  PORTUGUÊS (BRASIL / PORTUGAL)                                 */
+  /* ═══════════════════════════════════════════════════════════════ */
   pt: {
-    header: {
-      explore: 'Explorar',
-      trips: 'Minhas Viagens',
-      profile: 'Perfil'
+    common: {
+      next: 'Próximo',
+      back: 'Voltar',
+      skip: 'Pular por agora',
+      continue: 'Continuar',
+      confirm: 'Confirmar',
+      save: 'Salvar',
+      cancel: 'Cancelar',
+      loading: 'Carregando...',
+      step_of: 'Passo {step} de {total}',
+      yes: 'Sim',
+      no: 'Não',
+    },
+    login: {
+      title_login: 'Acessar sua conta',
+      title_register: 'Criar uma conta',
+      desc_login: 'Entre com suas credenciais para continuar.',
+      desc_register: 'Preencha os dados para começar a explorar.',
+      country_label: 'País / Idioma',
+      country_placeholder: 'Selecione seu país',
+      google: 'Continuar com Google',
+      or_email: 'Ou e-mail',
+      name: 'Nome Completo',
+      name_placeholder: 'Seu nome',
+      email: 'E-mail',
+      email_placeholder: 'exemplo@waylo.app',
+      password: 'Senha',
+      submit_login: 'Entrar',
+      submit_register: 'Cadastrar',
+      toggle_to_register: 'Não tem uma conta?',
+      toggle_register_link: 'Cadastre-se grátis',
+      toggle_to_login: 'Já tem uma conta?',
+      toggle_login_link: 'Faça login',
+      verify_title: 'Verifique seu e-mail',
+      verify_desc: 'Enviamos um link de confirmação. Clique nele para ativar sua conta.',
+      verify_back: 'Voltar para o login',
+      errors: {
+        already_registered: 'Este e-mail já está cadastrado. Tente fazer login.',
+        invalid_credentials: 'E-mail ou senha incorretos.',
+        email_not_confirmed: 'Confirme seu e-mail antes de entrar.',
+        rate_limit: 'Muitas tentativas. Aguarde alguns minutos.',
+        generic: 'Ocorreu um erro. Tente novamente.',
+      }
+    },
+    onboarding: {
+      title: 'Onde você mora?',
+      subtitle: 'Isso define o idioma e as sugestões personalizadas.',
+      button: 'Continuar',
+    },
+    dashboard: {
+      greeting: 'Olá,',
+      subtitle: 'Para onde vamos agora? Sua próxima jornada começa aqui.',
+      inspiration: 'Para onde vamos agora?',
+      see_all: 'Ver todos',
+      my_flights: 'Meus Voos',
+      interactive_map: 'Mapa Interativo',
+      explore_ai: 'Explorar IA',
+      nav: { search: 'Busca', map: 'Mapa', create: 'Criar', account: 'Conta' },
+      profile: { logout: 'Sair da conta' },
     },
     hub: {
       back: 'Voltar para Meus Roteiros',
       not_found: 'Viagem não encontrada',
-      generating: 'Analisando seu perfil...',
       ready: 'Roteiro Pronto',
-      itinerary: 'Itinerário',
+      day: 'Dia',
       tabs: {
         itinerary: 'Itinerário',
         logistics: 'Logística',
         costs: 'Custos',
         social: 'Social',
-        settings: 'Ajustes'
+        settings: 'Ajustes',
       },
       status: {
         analyzing: 'Analisando Perfil',
         mapping: 'Mapeando Logística',
-        generating: 'IA Construindo',
-        finishing: 'Finalizando'
+        generating: 'Construindo Roteiro',
+        finishing: 'Finalizando',
+      },
+    },
+    wizard: {
+      step1: { title: 'Com quem você vai viajar?', desc: 'Isso nos ajuda a escolher os melhores lugares e atividades.' },
+      step2: { title: 'Qual o ritmo da viagem?', desc: 'Quantas atividades você aguenta em um dia?' },
+      step3: { title: 'Qual o seu orçamento?', desc: 'Isso definirá as sugestões de hotéis e experiências.' },
+      step4: { title: 'A Vibe da Viagem', desc: 'Selecione os estilos que mais combinam com este roteiro.' },
+      step5: { title: 'Acessibilidade & Dieta', desc: 'Garantimos que cada parada seja segura e confortável para todos.' },
+      step6: { title: 'Preferências de Exclusão', desc: 'Existem tipos de lugares ou atividades que você prefere evitar?' },
+      step7: { title: 'Sua Visão', desc: 'Conte-nos sobre desejos específicos para o roteiro.' },
+      step8: { title: 'Âncora de Hospedagem', desc: 'Onde você pretende se hospedar? Usaremos isso como base logística.' },
+      companion: { solo: 'Sozinho', couple: 'Em Casal', friends: 'Com Amigos', family: 'Com Família' },
+      pace: {
+        relax: { label: 'Relaxado', desc: 'Acorde tarde, aproveite longos cafés e veja tudo sem pressa.' },
+        balanced: { label: 'Equilibrado', desc: 'O melhor de dois mundos. Algumas atividades e tempo livre.' },
+        intense: { label: 'Intenso', desc: 'Muitos lugares no mesmo dia. Foco em ver o máximo possível.' },
+      },
+      budget: {
+        budget: { label: 'Econômico', desc: 'Foco em custo-benefício, hostels premium e comida local.' },
+        comfort: { label: 'Intermediário', desc: 'Hotéis 4 estrelas, experiências guiadas e jantares de qualidade.' },
+        luxury: { label: 'Luxo', desc: 'O melhor que o destino oferece. Hotéis 5 estrelas e exclusividade.' },
+      },
+      vibes: { culture: 'Cultura & História', adventure: 'Aventura & Natureza', food: 'Gastronomia', nightlife: 'Vida Noturna', shopping: 'Compras', relax: 'Relaxamento' },
+      mobility_label: 'Restrições de Mobilidade?',
+      dietary_label: 'Restrições Alimentares?',
+      dietary_placeholder: 'Ex: Vegan, Alergia a amendoim, Sem glúten...',
+      exclusion_placeholder: 'Ex: Prefiro evitar museus, não gosto de frutos do mar...',
+      vision_placeholder: 'Ex: Quero focar em cafés históricos, evitar ladeiras...',
+      hotel_label: 'Nome do Hotel',
+      hotel_placeholder: 'Ex: Ritz Paris, Intercontinental Roma...',
+      hotel_hint: 'Você poderá alterar o hotel depois, e o roteiro se ajustará automaticamente.',
+      last_step: 'Último Passo',
+      generating: 'Relatando GPS...',
+      submit: 'Confirmar e Gerar',
+    },
+    concierge: {
+      step_of: 'Etapa {step}/3',
+      step1: { title: 'Quem vai explorar com você?', desc: 'Convide amigos para acompanharem o roteiro em tempo real.' },
+      step2: { title: 'Como você pretende se locomover?', desc: 'Isso nos ajuda a calcular tempos de deslocamento reais.' },
+      step3: { title: 'Qual o orçamento total planejado?', desc: 'Valor estimado para toda a viagem, por pessoa.' },
+      email_placeholder: 'ana@email.com, pedro@email.com...',
+      email_hint: 'Os convites serão enviados quando o roteiro estiver pronto.',
+      transport: { public: 'Transporte público', uber: 'Uber / Táxi', rental: 'Carro alugado', walking: 'A pé' },
+      budget_placeholder: 'Ex: 5000',
+      budget_hint: 'Seus gastos serão otimizados com base nesse valor.',
+      skip: 'Pular por agora',
+      saving: 'Salvando...',
+      done: 'Tudo pronto!',
+      next: 'Próximo',
+    },
+    footer: { tagline: 'Sua jornada começa aqui.' },
+    ai: { language: 'Português (Brasil)' },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  ENGLISH                                                       */
+  /* ═══════════════════════════════════════════════════════════════ */
+  en: {
+    common: {
+      next: 'Next',
+      back: 'Back',
+      skip: 'Skip for now',
+      continue: 'Continue',
+      confirm: 'Confirm',
+      save: 'Save',
+      cancel: 'Cancel',
+      loading: 'Loading...',
+      step_of: 'Step {step} of {total}',
+      yes: 'Yes',
+      no: 'No',
+    },
+    login: {
+      title_login: 'Sign in to your account',
+      title_register: 'Create an account',
+      desc_login: 'Enter your credentials to continue.',
+      desc_register: 'Fill in your details to start exploring.',
+      country_label: 'Country / Language',
+      country_placeholder: 'Select your country',
+      google: 'Continue with Google',
+      or_email: 'Or email',
+      name: 'Full Name',
+      name_placeholder: 'Your name',
+      email: 'Email',
+      email_placeholder: 'example@waylo.app',
+      password: 'Password',
+      submit_login: 'Sign In',
+      submit_register: 'Sign Up',
+      toggle_to_register: "Don't have an account?",
+      toggle_register_link: 'Sign up for free',
+      toggle_to_login: 'Already have an account?',
+      toggle_login_link: 'Sign in',
+      verify_title: 'Check your email',
+      verify_desc: 'We sent you a confirmation link. Click it to activate your account.',
+      verify_back: 'Back to login',
+      errors: {
+        already_registered: 'This email is already registered. Try logging in.',
+        invalid_credentials: 'Invalid email or password.',
+        email_not_confirmed: 'Confirm your email before signing in.',
+        rate_limit: 'Too many attempts. Please wait a few minutes.',
+        generic: 'An error occurred. Please try again.',
       }
     },
     onboarding: {
-      title: 'Seja bem-vindo ao Waylo!',
-      subtitle: 'Para personalizar sua experiência, selecione seu país de origem.',
-      placeholders: {
-        country: 'Selecione seu país'
-      },
-      button: 'Começar minha jornada'
-    }
-  },
-  en: {
-    header: {
-      explore: 'Explore',
-      trips: 'My Trips',
-      profile: 'Profile'
+      title: 'Where do you live?',
+      subtitle: 'This sets the language and personalized suggestions.',
+      button: 'Continue',
+    },
+    dashboard: {
+      greeting: 'Hello,',
+      subtitle: 'Where to next? Your next journey starts here.',
+      inspiration: 'Where to next?',
+      see_all: 'See all',
+      my_flights: 'My Flights',
+      interactive_map: 'Interactive Map',
+      explore_ai: 'Explore AI',
+      nav: { search: 'Search', map: 'Map', create: 'Create', account: 'Account' },
+      profile: { logout: 'Sign out' },
     },
     hub: {
       back: 'Back to My Trips',
       not_found: 'Trip not found',
-      generating: 'Analyzing your profile...',
       ready: 'Itinerary Ready',
-      itinerary: 'Itinerary',
+      day: 'Day',
       tabs: {
         itinerary: 'Itinerary',
         logistics: 'Logistics',
         costs: 'Costs',
         social: 'Social',
-        settings: 'Settings'
+        settings: 'Settings',
       },
       status: {
         analyzing: 'Analyzing Profile',
         mapping: 'Mapping Logistics',
-        generating: 'AI Building',
-        finishing: 'Finishing'
+        generating: 'Building Itinerary',
+        finishing: 'Finishing',
+      },
+    },
+    wizard: {
+      step1: { title: 'Who are you traveling with?', desc: 'This helps us pick the best places and activities.' },
+      step2: { title: 'What\'s the trip rhythm?', desc: 'How many activities can you handle in a day?' },
+      step3: { title: 'What\'s your budget?', desc: 'This shapes hotel and experience suggestions.' },
+      step4: { title: 'Trip Vibes', desc: 'Select the styles that best match this trip.' },
+      step5: { title: 'Accessibility & Diet', desc: 'We\'ll make sure every stop is safe and comfortable.' },
+      step6: { title: 'Exclusion Preferences', desc: 'Any places or activities you\'d rather avoid?' },
+      step7: { title: 'Your Vision', desc: 'Tell us about specific wishes for your itinerary.' },
+      step8: { title: 'Accommodation Base', desc: 'Where are you staying? We\'ll use it as your logistics anchor.' },
+      companion: { solo: 'Solo', couple: 'Couple', friends: 'With Friends', family: 'With Family' },
+      pace: {
+        relax: { label: 'Relaxed', desc: 'Sleep in, enjoy long coffees and see everything at your pace.' },
+        balanced: { label: 'Balanced', desc: 'Best of both worlds. Some activities and free time.' },
+        intense: { label: 'Intense', desc: 'Many stops per day. Focus on seeing as much as possible.' },
+      },
+      budget: {
+        budget: { label: 'Budget', desc: 'Best value for money, premium hostels and local food.' },
+        comfort: { label: 'Mid-Range', desc: '4-star hotels, guided experiences and quality dinners.' },
+        luxury: { label: 'Luxury', desc: 'The best the destination offers. 5-star hotels and exclusivity.' },
+      },
+      vibes: { culture: 'Culture & History', adventure: 'Adventure & Nature', food: 'Gastronomy', nightlife: 'Nightlife', shopping: 'Shopping', relax: 'Relaxation' },
+      mobility_label: 'Mobility Restrictions?',
+      dietary_label: 'Dietary Restrictions?',
+      dietary_placeholder: 'E.g.: Vegan, Peanut allergy, Gluten-free...',
+      exclusion_placeholder: 'E.g.: I prefer to avoid museums, I don\'t like seafood...',
+      vision_placeholder: 'E.g.: I want to focus on historic cafes, avoid steep hills...',
+      hotel_label: 'Hotel Name',
+      hotel_placeholder: 'E.g.: Ritz Paris, Intercontinental Rome...',
+      hotel_hint: 'You can change the hotel later, and the itinerary will adjust automatically.',
+      last_step: 'Last Step',
+      generating: 'Reporting GPS...',
+      submit: 'Confirm & Generate',
+    },
+    concierge: {
+      step_of: 'Step {step}/3',
+      step1: { title: 'Who\'s exploring with you?', desc: 'Invite friends to follow the itinerary in real time.' },
+      step2: { title: 'How do you plan to get around?', desc: 'This helps us calculate real travel times.' },
+      step3: { title: 'What\'s the total planned budget?', desc: 'Estimated amount for the entire trip, per person.' },
+      email_placeholder: 'anna@email.com, peter@email.com...',
+      email_hint: 'Invitations will be sent when the itinerary is ready.',
+      transport: { public: 'Public transit', uber: 'Uber / Taxi', rental: 'Rental car', walking: 'On foot' },
+      budget_placeholder: 'E.g.: 5000',
+      budget_hint: 'Your expenses will be optimized based on this amount.',
+      skip: 'Skip for now',
+      saving: 'Saving...',
+      done: 'All set!',
+      next: 'Next',
+    },
+    footer: { tagline: 'Your journey starts here.' },
+    ai: { language: 'English' },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  ESPAÑOL                                                       */
+  /* ═══════════════════════════════════════════════════════════════ */
+  es: {
+    common: { next: 'Siguiente', back: 'Volver', skip: 'Saltar por ahora', continue: 'Continuar', confirm: 'Confirmar', save: 'Guardar', cancel: 'Cancelar', loading: 'Cargando...', step_of: 'Paso {step} de {total}', yes: 'Sí', no: 'No' },
+    login: { 
+      title_login: 'Acceder a tu cuenta', 
+      title_register: 'Crear una cuenta', 
+      desc_login: 'Ingresa tus credenciales para continuar.', 
+      desc_register: 'Completa tus datos para empezar a explorar.', 
+      country_label: 'País / Idioma', 
+      country_placeholder: 'Selecciona tu país', 
+      google: 'Continuar con Google', 
+      or_email: 'O correo', 
+      name: 'Nombre Completo', 
+      name_placeholder: 'Tu nombre', 
+      email: 'Correo', 
+      email_placeholder: 'ejemplo@waylo.app', 
+      password: 'Contraseña', 
+      submit_login: 'Entrar', 
+      submit_register: 'Registrarse', 
+      toggle_to_register: '¿No tienes cuenta?', 
+      toggle_register_link: 'Regístrate gratis', 
+      toggle_to_login: '¿Ya tienes cuenta?', 
+      toggle_login_link: 'Inicia sesión', 
+      verify_title: 'Revisa tu correo', 
+      verify_desc: 'Te enviamos un enlace de confirmación. Haz clic para activar tu cuenta.', 
+      verify_back: 'Volver al inicio de sesión',
+      errors: {
+        already_registered: 'Este correo ya está registrado. Intenta iniciar sesión.',
+        invalid_credentials: 'Correo o contraseña incorrectos.',
+        email_not_confirmed: 'Confirma tu correo antes de entrar.',
+        rate_limit: 'Demasiados intentos. Por favor, espera unos minutos.',
+        generic: 'Ocurrió un error. Inténtalo de nuevo.',
       }
     },
-    onboarding: {
-      title: 'Welcome to Waylo!',
-      subtitle: 'To personalize your experience, please select your country of origin.',
-      placeholders: {
-        country: 'Select your country'
-      },
-      button: 'Start my journey'
-    }
-  }
+    onboarding: { title: '¿Dónde vives?', subtitle: 'Esto define el idioma y las sugerencias personalizadas.', button: 'Continuar' },
+    dashboard: { 
+      greeting: 'Hola,', 
+      subtitle: '¿A dónde vamos? Tu próxima aventura empieza aquí.', 
+      inspiration: '¿A dónde vamos?', 
+      see_all: 'Ver todos', 
+      my_flights: 'Mis Vuelos', 
+      interactive_map: 'Mapa Interactivo', 
+      explore_ai: 'Explorar IA', 
+      nav: { search: 'Buscar', map: 'Mapa', create: 'Crear', account: 'Cuenta' }, 
+      profile: { logout: 'Cerrar sesión' },
+    },
+    hub: { back: 'Volver a Mis Viajes', not_found: 'Viaje no encontrado', ready: 'Itinerario Listo', day: 'Día', tabs: { itinerary: 'Itinerario', logistics: 'Logística', costs: 'Costos', social: 'Social', settings: 'Ajustes' }, status: { analyzing: 'Analizando Perfil', mapping: 'Mapeando Logística', generating: 'Construyendo Itinerario', finishing: 'Finalizando' } },
+    wizard: { step1: { title: '¿Con quién viajas?', desc: 'Esto nos ayuda a elegir los mejores lugares.' }, step2: { title: '¿Cuál es el ritmo?', desc: '¿Cuántas actividades toleras por día?' }, step3: { title: '¿Cuál es tu presupuesto?', desc: 'Esto define las sugerencias de hoteles y experiencias.' }, step4: { title: 'El Estilo del Viaje', desc: 'Selecciona los estilos que más van contigo.' }, step5: { title: 'Accesibilidad y Dieta', desc: 'Garantizamos que cada parada sea segura y cómoda.' }, step6: { title: 'Preferencias de Exclusión', desc: '¿Hay lugares o actividades que prefieres evitar?' }, step7: { title: 'Tu Visión', desc: 'Cuéntanos deseos específicos para tu itinerario.' }, step8: { title: 'Base de Hospedaje', desc: '¿Dónde te hospedas? Lo usaremos como ancla logística.' }, companion: { solo: 'Solo/a', couple: 'En Pareja', friends: 'Con Amigos', family: 'Con Familia' }, pace: { relax: { label: 'Relajado', desc: 'Despierta tarde, disfruta largos cafés y ve todo sin prisa.' }, balanced: { label: 'Equilibrado', desc: 'Lo mejor de ambos mundos. Actividades y tiempo libre.' }, intense: { label: 'Intenso', desc: 'Muchos lugares al día. Foco en ver lo máximo posible.' } }, budget: { budget: { label: 'Económico', desc: 'Mejor relación calidad-precio, hostels y comida local.' }, comfort: { label: 'Intermedio', desc: 'Hoteles 4 estrellas, experiencias guiadas y cenas de calidad.' }, luxury: { label: 'Lujo', desc: 'Lo mejor del destino. Hoteles 5 estrellas y exclusividad.' } }, vibes: { culture: 'Cultura e Historia', adventure: 'Aventura y Naturaleza', food: 'Gastronomía', nightlife: 'Vida Nocturna', shopping: 'Compras', relax: 'Relajación' }, mobility_label: '¿Restricciones de Movilidad?', dietary_label: '¿Restricciones Alimentarias?', dietary_placeholder: 'Ej: Vegano, Alergia al maní, Sin gluten...', exclusion_placeholder: 'Ej: Prefiero evitar museos, no me gusta el marisco...', vision_placeholder: 'Ej: Quiero enfocarme en cafés históricos...', hotel_label: 'Nombre del Hotel', hotel_placeholder: 'Ej: Ritz Paris, Intercontinental Roma...', hotel_hint: 'Puedes cambiar el hotel después y el itinerario se ajustará.', last_step: 'Último Paso', generating: 'Reportando GPS...', submit: 'Confirmar y Generar' },
+    concierge: { step_of: 'Etapa {step}/3', step1: { title: '¿Quién explora contigo?', desc: 'Invita amigos a seguir el itinerario en tiempo real.' }, step2: { title: '¿Cómo piensas moverte?', desc: 'Esto nos ayuda a calcular tiempos de traslado reales.' }, step3: { title: '¿Cuál es el presupuesto total?', desc: 'Monto estimado para todo el viaje, por persona.' }, email_placeholder: 'ana@email.com, pedro@email.com...', email_hint: 'Las invitaciones se enviarán cuando el itinerario esté listo.', transport: { public: 'Transporte público', uber: 'Uber / Taxi', rental: 'Auto alquilado', walking: 'A pie' }, budget_placeholder: 'Ej: 5000', budget_hint: 'Tus gastos se optimizarán según este monto.', skip: 'Saltar por ahora', saving: 'Guardando...', done: '¡Todo listo!', next: 'Siguiente' },
+    footer: { tagline: 'Tu aventura comienza aquí.' },
+    ai: { language: 'Español' },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  FRANÇAIS                                                      */
+  /* ═══════════════════════════════════════════════════════════════ */
+  fr: {
+    common: { next: 'Suivant', back: 'Retour', skip: 'Passer pour le moment', continue: 'Continuer', confirm: 'Confirmer', save: 'Sauvegarder', cancel: 'Annuler', loading: 'Chargement...', step_of: 'Étape {step} sur {total}', yes: 'Oui', no: 'Non' },
+    login: { 
+      title_login: 'Accéder à votre compte', 
+      title_register: 'Créer un compte', 
+      desc_login: 'Entrez vos identifiants pour continuer.', 
+      desc_register: 'Remplissez vos informations pour explorer.', 
+      country_label: 'Pays / Langue', 
+      country_placeholder: 'Choisissez votre pays', 
+      google: 'Continuer avec Google', 
+      or_email: 'Ou e-mail', 
+      name: 'Nom Complet', 
+      name_placeholder: 'Votre nom', 
+      email: 'E-mail', 
+      email_placeholder: 'exemple@waylo.app', 
+      password: 'Mot de passe', 
+      submit_login: 'Se connecter', 
+      submit_register: "S'inscrire", 
+      toggle_to_register: "Pas encore de compte ?", 
+      toggle_register_link: "Inscrivez-vous", 
+      toggle_to_login: 'Déjà un compte ?', 
+      toggle_login_link: 'Connectez-vous', 
+      verify_title: 'Vérifiez votre e-mail', 
+      verify_desc: "Nous vous avons envoyé un lien de confirmation.", 
+      verify_back: 'Retour à la connexion',
+      errors: {
+        already_registered: 'Cet e-mail est déjà enregistré. Essayez de vous connecter.',
+        invalid_credentials: 'E-mail ou mot de passe incorrect.',
+        email_not_confirmed: 'Confirmez votre e-mail avant de vous connecter.',
+        rate_limit: 'Trop de tentatives. Veuillez patienter quelques minutes.',
+        generic: 'Une erreur est survenue. Veuillez réessayer.',
+      }
+    },
+    onboarding: { title: 'Où habitez-vous ?', subtitle: 'Cela définit la langue et les suggestions personnalisées.', button: 'Continuer' },
+    dashboard: { 
+      greeting: 'Bonjour,', 
+      subtitle: 'Où allons-nous ? Votre prochaine aventure commence ici.', 
+      inspiration: 'Où allons-nous ?', 
+      see_all: 'Voir tout', 
+      my_flights: 'Mes Vols', 
+      interactive_map: 'Carte Interactive', 
+      explore_ai: 'Explorer IA', 
+      nav: { search: 'Recherche', map: 'Carte', create: 'Créer', account: 'Compte' }, 
+      profile: { logout: 'Se déconnecter' },
+    },
+    hub: { back: 'Retour à Mes Voyages', not_found: 'Voyage introuvable', ready: 'Itinéraire Prêt', day: 'Jour', tabs: { itinerary: 'Itinéraire', logistics: 'Logistique', costs: 'Coûts', social: 'Social', settings: 'Paramètres' }, status: { analyzing: 'Analyse du Profil', mapping: 'Cartographie Logistique', generating: "Construction de l'Itinéraire", finishing: 'Finalisation' } },
+    wizard: { step1: { title: 'Avec qui voyagez-vous ?', desc: 'Cela nous aide à choisir les meilleurs endroits.' }, step2: { title: 'Quel est le rythme ?', desc: "Combien d'activités par jour ?" }, step3: { title: 'Quel est votre budget ?', desc: "Cela détermine les suggestions d'hôtels." }, step4: { title: 'L\'Ambiance du Voyage', desc: 'Sélectionnez les styles qui vous correspondent.' }, step5: { title: 'Accessibilité & Alimentation', desc: 'Nous garantissons confort et sécurité à chaque arrêt.' }, step6: { title: "Préférences d'Exclusion", desc: 'Y a-t-il des lieux ou activités à éviter ?' }, step7: { title: 'Votre Vision', desc: 'Parlez-nous de vos souhaits spécifiques.' }, step8: { title: "Base d'Hébergement", desc: 'Où logez-vous ? Nous utiliserons cela comme ancre logistique.' }, companion: { solo: 'Seul(e)', couple: 'En Couple', friends: 'Entre Amis', family: 'En Famille' }, pace: { relax: { label: 'Détendu', desc: 'Réveil tardif, cafés prolongés et tout à votre rythme.' }, balanced: { label: 'Équilibré', desc: 'Le meilleur des deux mondes.' }, intense: { label: 'Intense', desc: 'Beaucoup de visites par jour.' } }, budget: { budget: { label: 'Économique', desc: 'Meilleur rapport qualité-prix.' }, comfort: { label: 'Intermédiaire', desc: 'Hôtels 4 étoiles et expériences guidées.' }, luxury: { label: 'Luxe', desc: 'Le meilleur du destination. 5 étoiles.' } }, vibes: { culture: 'Culture & Histoire', adventure: 'Aventure & Nature', food: 'Gastronomie', nightlife: 'Vie Nocturne', shopping: 'Shopping', relax: 'Détente' }, mobility_label: 'Restrictions de Mobilité ?', dietary_label: 'Restrictions Alimentaires ?', dietary_placeholder: 'Ex : Végan, Allergie aux arachides...', exclusion_placeholder: 'Ex : Je préfère éviter les musées...', vision_placeholder: 'Ex : Cafés historiques, éviter les montées...', hotel_label: "Nom de l'Hôtel", hotel_placeholder: 'Ex : Ritz Paris...', hotel_hint: "Vous pourrez changer d'hôtel ensuite.", last_step: 'Dernière Étape', generating: 'Localisation GPS...', submit: 'Confirmer et Générer' },
+    concierge: { 
+      step_of: 'Étape {step}/3', 
+      step1: { title: 'Qui explore avec vous ?', desc: 'Invitez des amis à suivre en temps réel.' }, 
+      step2: { title: 'Comment comptez-vous vous déplacer ?', desc: 'Cela aide à calculer les temps de trajet.' }, 
+      step3: { title: 'Budget total prévu ?', desc: 'Montant estimé pour tout le voyage.' }, 
+      email_placeholder: 'ami@email.com...', 
+      email_hint: "Les invitations seront envoyées à la fin.", 
+      transport: { public: 'Transport en commun', uber: 'Uber / Taxi', rental: 'Voiture de location', walking: 'À pied' }, 
+      budget_placeholder: 'Ex : 5000', 
+      budget_hint: 'Vos dépenses seront optimisées.', 
+      skip: 'Passer', 
+      saving: 'Sauvegarde...', 
+      done: 'Terminé !', 
+      next: 'Suivant' 
+    },
+    footer: { tagline: 'Votre aventure commence ici.' },
+    ai: { language: 'Français' },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  DEUTSCH                                                       */
+  /* ═══════════════════════════════════════════════════════════════ */
+  de: {
+    common: { next: 'Weiter', back: 'Zurück', skip: 'Jetzt überspringen', continue: 'Fortfahren', confirm: 'Bestätigen', save: 'Speichern', cancel: 'Abbrechen', loading: 'Laden...', step_of: 'Schritt {step} von {total}', yes: 'Ja', no: 'Nein' },
+    login: { 
+      title_login: 'In Ihr Konto einloggen', 
+      title_register: 'Konto erstellen', 
+      desc_login: 'Geben Sie Ihre Daten ein.', 
+      desc_register: 'Füllen Sie Ihre Daten aus.', 
+      country_label: 'Land / Sprache', 
+      country_placeholder: 'Land wählen', 
+      google: 'Weiter mit Google', 
+      or_email: 'Oder E-Mail', 
+      name: 'Vollständiger Name', 
+      name_placeholder: 'Ihr Name', 
+      email: 'E-Mail', 
+      email_placeholder: 'beispiel@waylo.app', 
+      password: 'Passwort', 
+      submit_login: 'Anmelden', 
+      submit_register: 'Registrieren', 
+      toggle_to_register: 'Kein Konto?', 
+      toggle_register_link: 'Kostenlos registrieren', 
+      toggle_to_login: 'Bereits ein Konto?', 
+      toggle_login_link: 'Anmelden', 
+      verify_title: 'E-Mail überprüfen', 
+      verify_desc: 'Wir haben Ihnen einen Bestätigungslink gesendet.', 
+      verify_back: 'Zurück zum Login',
+      errors: {
+        already_registered: 'Diese E-Mail ist bereits registriert. Versuchen Sie sich einzuloggen.',
+        invalid_credentials: 'Ungültige E-Mail oder Passwort.',
+        email_not_confirmed: 'Bestätigen Sie Ihre E-Mail vor der Anmeldung.',
+        rate_limit: 'Zu viele Versuche. Bitte warten Sie einige Minuten.',
+        generic: 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.',
+      }
+    },
+    onboarding: { title: 'Wo wohnen Sie?', subtitle: 'Dies legt die Sprache und Vorschläge fest.', button: 'Fortfahren' },
+    dashboard: { 
+      greeting: 'Hallo,', 
+      subtitle: 'Wohin geht es? Ihr nächstes Abenteuer beginnt hier.', 
+      inspiration: 'Wohin geht es?', 
+      see_all: 'Alle anzeigen', 
+      my_flights: 'Meine Flüge', 
+      interactive_map: 'Interaktive Karte', 
+      explore_ai: 'KI erkunden', 
+      nav: { search: 'Suche', map: 'Karte', create: 'Erstellen', account: 'Konto' }, 
+      profile: { logout: 'Abmelden' },
+    },
+    hub: { back: 'Zurück zu Meinen Reisen', not_found: 'Reise nicht gefunden', ready: 'Reiseplan Fertig', day: 'Tag', tabs: { itinerary: 'Reiseplan', logistics: 'Logistik', costs: 'Kosten', social: 'Soziales', settings: 'Einstellungen' }, status: { analyzing: 'Profil analysieren', mapping: 'Logistik kartieren', generating: 'Reiseplan erstellen', finishing: 'Abschließen' } },
+    wizard: { step1: { title: 'Mit wem reisen Sie?', desc: 'Das hilft uns, die besten Orte auszuwählen.' }, step2: { title: 'Welches Tempo?', desc: 'Wie viele Aktivitäten pro Tag?' }, step3: { title: 'Ihr Budget?', desc: 'Das bestimmt Hotel- und Erlebnisvorschläge.' }, step4: { title: 'Reise-Vibes', desc: 'Wählen Sie passende Stile aus.' }, step5: { title: 'Barrierefreiheit & Ernährung', desc: 'Wir sorgen für Komfort an jedem Halt.' }, step6: { title: 'Ausschluss-Präferenzen', desc: 'Orte oder Aktivitäten, die Sie vermeiden möchten?' }, step7: { title: 'Ihre Vision', desc: 'Erzählen Sie uns Ihre spezifischen Wünsche.' }, step8: { title: 'Unterkunftsbasis', desc: 'Wo übernachten Sie? Das nutzen wir als Logistik-Anker.' }, companion: { solo: 'Allein', couple: 'Als Paar', friends: 'Mit Freunden', family: 'Mit Familie' }, pace: { relax: { label: 'Entspannt', desc: 'Spät aufstehen, lange Kaffees genießen.' }, balanced: { label: 'Ausgewogen', desc: 'Das Beste aus beiden Welten.' }, intense: { label: 'Intensiv', desc: 'Viele Orte pro Tag.' } }, budget: { budget: { label: 'Günstig', desc: 'Bestes Preis-Leistungs-Verhältnis.' }, comfort: { label: 'Mittelklasse', desc: '4-Sterne-Hotels und geführte Erlebnisse.' }, luxury: { label: 'Luxus', desc: 'Das Beste, was das Reiseziel bietet.' } }, vibes: { culture: 'Kultur & Geschichte', adventure: 'Abenteuer & Natur', food: 'Gastronomie', nightlife: 'Nachtleben', shopping: 'Einkaufen', relax: 'Entspannung' }, mobility_label: 'Mobilitätseinschränkungen?', dietary_label: 'Ernährungseinschränkungen?', dietary_placeholder: 'Z.B.: Vegan, Erdnussallergie...', exclusion_placeholder: 'Z.B.: Museen vermeiden...', vision_placeholder: 'Z.B.: Historische Cafés bevorzugen...', hotel_label: 'Hotelname', hotel_placeholder: 'Z.B.: Ritz Paris...', hotel_hint: 'Sie können das Hotel später ändern.', last_step: 'Letzter Schritt', generating: 'GPS melden...', submit: 'Bestätigen & Generieren' },
+    concierge: { 
+      step_of: 'Schritt {step}/3', 
+      step1: { title: 'Wer erkundet mit?', desc: 'Laden Sie Freunde ein, den Reiseplan zu verfolgen.' }, 
+      step2: { title: 'Wie bewegen Sie sich fort?', desc: 'Das hilft bei der Zeitberechnung.' }, 
+      step3: { title: 'Geplantes Gesamtbudget?', desc: 'Geschätzt für die gesamte Reise pro Person.' }, 
+      email_placeholder: 'freund@email.com...', 
+      email_hint: 'Einladungen werden gesendet, wenn der Plan fertig ist.', 
+      transport: { public: 'ÖPNV', uber: 'Uber / Taxi', rental: 'Mietwagen', walking: 'Zu Fuß' }, 
+      budget_placeholder: 'Z.B.: 5000', 
+      budget_hint: 'Ausgaben werden basierend darauf optimiert.', 
+      skip: 'Überspringen', 
+      saving: 'Speichern...', 
+      done: 'Alles fertig!', 
+      next: 'Weiter' 
+    },
+    footer: { tagline: 'Ihr Abenteuer beginnt hier.' },
+    ai: { language: 'Deutsch' },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  ITALIANO                                                      */
+  /* ═══════════════════════════════════════════════════════════════ */
+  it: {
+    common: { next: 'Avanti', back: 'Indietro', skip: 'Salta per ora', continue: 'Continua', confirm: 'Conferma', save: 'Salva', cancel: 'Annulla', loading: 'Caricamento...', step_of: 'Passo {step} di {total}', yes: 'Sì', no: 'No' },
+    login: { 
+      title_login: 'Accedi al tuo account', 
+      title_register: 'Crea un account', 
+      desc_login: 'Inserisci le tue credenziali.', 
+      desc_register: 'Compila i tuoi dati per iniziare.', 
+      country_label: 'Paese / Lingua', 
+      country_placeholder: 'Seleziona il tuo paese', 
+      google: 'Continua con Google', 
+      or_email: 'O email', 
+      name: 'Nome Completo', 
+      name_placeholder: 'Il tuo nome', 
+      email: 'Email', 
+      email_placeholder: 'esempio@waylo.app', 
+      password: 'Password', 
+      submit_login: 'Accedi', 
+      submit_register: 'Registrati', 
+      toggle_to_register: 'Non hai un account?', 
+      toggle_register_link: 'Registrati gratis', 
+      toggle_to_login: 'Hai già un account?', 
+      toggle_login_link: 'Accedi', 
+      verify_title: 'Controlla la tua email', 
+      verify_desc: 'Ti abbiamo inviato un link di conferma.', 
+      verify_back: "Torna al login",
+      errors: {
+        already_registered: 'Questa email è già registrata. Prova ad accedere.',
+        invalid_credentials: 'Email o password non corretta.',
+        email_not_confirmed: 'Conferma la tua email prima di accedere.',
+        rate_limit: 'Troppi tentativi. Attendi qualche minuto.',
+        generic: 'Si è verificato un errore. Riprova.',
+      }
+    },
+    onboarding: { title: 'Dove vivi?', subtitle: 'Questo definisce la lingua e i suggerimenti.', button: 'Continua' },
+    dashboard: { 
+      greeting: 'Ciao,', 
+      subtitle: 'Dove andiamo? La tua prossima avventura inizia qui.', 
+      inspiration: 'Dove andiamo?', 
+      see_all: 'Vedi tutti', 
+      my_flights: 'I Miei Voli', 
+      interactive_map: 'Mappa Interattiva', 
+      explore_ai: 'Esplora IA', 
+      nav: { search: 'Cerca', map: 'Mappa', create: 'Crea', account: 'Account' }, 
+      profile: { logout: 'Esci' },
+      errors: {
+        already_registered: 'Questa email è già registrata. Prova ad accedere.',
+        invalid_credentials: 'Email o password non corretta.',
+        email_not_confirmed: 'Conferma la tua email prima di accedere.',
+        rate_limit: 'Troppi tentativi. Attendi qualche minuto.',
+        generic: 'Si è verificato un errore. Riprova.',
+      }
+    },
+    hub: { back: 'Torna ai Miei Viaggi', not_found: 'Viaggio non trovato', ready: 'Itinerario Pronto', day: 'Giorno', tabs: { itinerary: 'Itinerario', logistics: 'Logistica', costs: 'Costi', social: 'Social', settings: 'Impostazioni' }, status: { analyzing: 'Analizzando Profilo', mapping: 'Mappando Logistica', generating: "Costruendo l'Itinerario", finishing: 'Finalizzando' } },
+    wizard: { step1: { title: 'Con chi viaggi?', desc: 'Ci aiuta a scegliere i posti migliori.' }, step2: { title: 'Qual è il ritmo?', desc: 'Quante attività al giorno?' }, step3: { title: 'Qual è il tuo budget?', desc: 'Definisce i suggerimenti di hotel.' }, step4: { title: 'Atmosfera del Viaggio', desc: 'Seleziona gli stili che preferisci.' }, step5: { title: 'Accessibilità e Dieta', desc: 'Garantiamo comfort a ogni tappa.' }, step6: { title: 'Preferenze di Esclusione', desc: 'Luoghi o attività da evitare?' }, step7: { title: 'La Tua Visione', desc: 'Raccontaci i tuoi desideri specifici.' }, step8: { title: 'Base di Alloggio', desc: "Dove alloggi? Lo useremo come ancora logistica." }, companion: { solo: 'Da Solo/a', couple: 'In Coppia', friends: 'Con Amici', family: 'In Famiglia' }, pace: { relax: { label: 'Rilassato', desc: 'Sveglia tardi, caffè lunghi.' }, balanced: { label: 'Equilibrato', desc: 'Il meglio di entrambi.' }, intense: { label: 'Intenso', desc: 'Tante tappe al giorno.' } }, budget: { budget: { label: 'Economico', desc: 'Miglior rapporto qualità-prezzo.' }, comfort: { label: 'Intermedio', desc: 'Hotel 4 stelle e esperienze guidate.' }, luxury: { label: 'Lusso', desc: 'Il meglio della destinazione.' } }, vibes: { culture: 'Cultura e Storia', adventure: 'Avventura e Natura', food: 'Gastronomia', nightlife: 'Vita Notturna', shopping: 'Shopping', relax: 'Relax' }, mobility_label: 'Restrizioni di Mobilità?', dietary_label: 'Restrizioni Alimentari?', dietary_placeholder: 'Es.: Vegano, Allergia alle arachidi...', exclusion_placeholder: 'Es.: Preferisco evitare i musei...', vision_placeholder: 'Es.: Voglio caffè storici...', hotel_label: "Nome dell'Hotel", hotel_placeholder: 'Es.: Ritz Paris...', hotel_hint: "Puoi cambiare hotel dopo.", last_step: 'Ultimo Passo', generating: 'Segnalando GPS...', submit: 'Conferma e Genera' },
+    concierge: { 
+      step_of: 'Passo {step}/3', 
+      step1: { title: 'Chi esplora con te?', desc: 'Invita amici a seguire in tempo reale.' }, 
+      step2: { title: 'Come ti sposti?', desc: 'Ci aiuta a calcolare i tempi.' }, 
+      step3: { title: 'Budget totale previsto?', desc: "Importo stimato per l'intero viaggio." }, 
+      email_placeholder: 'amico@email.com...', 
+      email_hint: "Gli inviti saranno inviati alla fine.", 
+      transport: { public: 'Trasporto pubblico', uber: 'Uber / Taxi', rental: 'Auto a noleggio', walking: 'A piedi' }, 
+      budget_placeholder: 'Es.: 5000', 
+      budget_hint: 'Le spese saranno ottimizzate.', 
+      skip: 'Salta', 
+      saving: 'Salvataggio...', 
+      done: 'Tutto pronto!', 
+      next: 'Avanti' 
+    },
+    footer: { tagline: 'La tua avventura inizia qui.' },
+    ai: { language: 'Italiano' },
+  },
+
+  /* ═══════════════════════════════════════════════════════════════ */
+  /*  日本語 (JAPANESE)                                              */
+  /* ═══════════════════════════════════════════════════════════════ */
+  ja: {
+    common: { next: '次へ', back: '戻る', skip: '今はスキップ', continue: '続ける', confirm: '確認', save: '保存', cancel: 'キャンセル', loading: '読み込み中...', step_of: 'ステップ {step} / {total}', yes: 'はい', no: 'いいえ' },
+    login: { 
+      title_login: 'アカウントにログイン', 
+      title_register: 'アカウントを作成', 
+      desc_login: '認証情報を入力してください。', 
+      desc_register: '詳細を入力して探索を始めましょう。', 
+      country_label: '国 / 言語', 
+      country_placeholder: '国を選択', 
+      google: 'Googleで続ける', 
+      or_email: 'またはメール', 
+      name: '氏名', 
+      name_placeholder: 'お名前', 
+      email: 'メール', 
+      email_placeholder: 'example@waylo.app', 
+      password: 'パスワード', 
+      submit_login: 'ログイン', 
+      submit_register: '登録', 
+      toggle_to_register: 'アカウントをお持ちでない方', 
+      toggle_register_link: '無料登録', 
+      toggle_to_login: 'すでにアカウントをお持ちの方', 
+      toggle_login_link: 'ログイン', 
+      verify_title: 'メールを確認', 
+      verify_desc: '確認リンクをお送りしました。', 
+      verify_back: 'ログインに戻る',
+      errors: {
+        already_registered: 'このメールアドレスはすでに登録されています。ログインしてください。',
+        invalid_credentials: 'メールアドレスまたはパスワードが正しくありません。',
+        email_not_confirmed: 'ログインする前にメールを確認してください。',
+        rate_limit: '試行回数が多すぎます。数分待ってからやり直してください。',
+        generic: 'エラーが発生しました。もう一度やり直してください。',
+      }
+    },
+    onboarding: { title: 'どこに住んでいますか？', subtitle: '言語とおすすめを設定します。', button: '続ける' },
+    dashboard: { 
+      greeting: 'こんにちは、', 
+      subtitle: '次はどこへ？冒険がここから始まります。', 
+      inspiration: '次はどこへ？', 
+      see_all: 'すべて見る', 
+      my_flights: 'マイフライト', 
+      interactive_map: 'インタラクティブマップ', 
+      explore_ai: 'AI探索', 
+      nav: { search: '検索', map: '地図', create: '作成', account: 'アカウント' }, 
+      profile: { logout: 'ログアウト' },
+    },
+    hub: { back: '旅行一覧に戻る', not_found: '旅行が見つかりません', ready: '旅程完成', day: '日目', tabs: { itinerary: '旅程', logistics: '物流', costs: '費用', social: 'ソーシャル', settings: '設定' }, status: { analyzing: 'プロフィール分析中', mapping: '物流マッピング中', generating: '旅程作成中', finishing: '完了処理中' } },
+    wizard: { step1: { title: '誰と旅行しますか？', desc: '最適な場所を選ぶのに役立ちます。' }, step2: { title: '旅のペースは？', desc: '1日に何アクティビティ？' }, step3: { title: '予算は？', desc: 'ホテルや体験の提案に反映します。' }, step4: { title: '旅のスタイル', desc: 'お好みのスタイルを選択。' }, step5: { title: 'アクセシビリティと食事', desc: '快適で安全な旅をお約束します。' }, step6: { title: '除外設定', desc: '避けたい場所やアクティビティは？' }, step7: { title: 'あなたのビジョン', desc: '具体的なご要望をお聞かせください。' }, step8: { title: '宿泊拠点', desc: 'どこに泊まりますか？物流の拠点にします。' }, companion: { solo: '一人旅', couple: 'カップル', friends: '友人と', family: '家族と' }, pace: { relax: { label: 'リラックス', desc: 'ゆっくり起きてのんびり。' }, balanced: { label: 'バランス', desc: '両方の良いとこ取り。' }, intense: { label: 'アクティブ', desc: '1日にたくさん回る。' } }, budget: { budget: { label: '節約', desc: 'コスパ重視。' }, comfort: { label: '中級', desc: '4つ星ホテル。' }, luxury: { label: '贅沢', desc: '最高級の体験。' } }, vibes: { culture: '文化と歴史', adventure: '冒険と自然', food: 'グルメ', nightlife: 'ナイトライフ', shopping: 'ショッピング', relax: 'リラクゼーション' }, mobility_label: '移動制限はありますか？', dietary_label: '食事制限はありますか？', dietary_placeholder: '例：ビーガン、ナッツアレルギー...', exclusion_placeholder: '例：美術館は避けたい...', vision_placeholder: '例：歴史的なカフェに行きたい...', hotel_label: 'ホテル名', hotel_placeholder: '例：リッツ パリ...', hotel_hint: '後からホテルを変更できます。', last_step: '最終ステップ', generating: 'GPS報告中...', submit: '確認して生成' },
+    concierge: { 
+      step_of: 'ステップ {step}/3', 
+      step1: { title: '誰と一緒に探索？', desc: '友人をリアルタイムに招待。' }, 
+      step2: { title: '移動手段は？', desc: '移動時間の計算に役立ちます。' }, 
+      step3: { title: '合計予算は？', desc: '旅行全体の1人あたりの見積もり。' }, 
+      email_placeholder: 'friend@email.com...', 
+      email_hint: '旅程完成後に招待が送信されます。', 
+      transport: { public: '公共交通', uber: 'Uber / タクシー', rental: 'レンタカー', walking: '徒歩' }, 
+      budget_placeholder: '例：50万円', 
+      budget_hint: '予算に基づいて最適化されます。', 
+      skip: 'スキップ', 
+      saving: '保存中...', 
+      done: '準備完了！', 
+      next: '次へ' 
+    },
+    footer: { tagline: '冒険がここから始まります。' },
+    ai: { language: '日本語' },
+  },
+} as const
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  HELPERS                                                       */
+/* ═══════════════════════════════════════════════════════════════ */
+
+const COUNTRY_LANG_MAP: Record<string, LangCode> = {
+  BR: 'pt', PT: 'pt', AO: 'pt', MZ: 'pt', CV: 'pt', ST: 'pt', GW: 'pt',
+  US: 'en', GB: 'en', AU: 'en', CA: 'en', NZ: 'en', IE: 'en', ZA: 'en',
+  ES: 'es', MX: 'es', AR: 'es', CO: 'es', CL: 'es', PE: 'es', VE: 'es', UY: 'es', PY: 'es', EC: 'es', BO: 'es', CR: 'es', CU: 'es', DO: 'es', GT: 'es', HN: 'es', NI: 'es', PA: 'es', SV: 'es',
+  FR: 'fr', BE: 'fr', CH: 'fr', SN: 'fr', CI: 'fr', ML: 'fr', CM: 'fr',
+  DE: 'de', AT: 'de',
+  IT: 'it',
+  JP: 'ja',
 }
 
 /**
- * Mapeia o código do país para um idioma suportado (pt ou en).
+ * Mapeia código do país → idioma suportado.
+ * Fallback: 'en'
  */
-export function getLanguageByCountry(countryCode: string): 'pt' | 'en' {
-  const ptCountries = ['BR', 'PT', 'AO', 'MZ', 'CV', 'ST', 'GW']
-  return ptCountries.includes(countryCode?.toUpperCase()) ? 'pt' : 'en'
+export function getLanguageByCountry(countryCode: string): LangCode {
+  return COUNTRY_LANG_MAP[countryCode?.toUpperCase()] || 'en'
 }
 
 /**
- * Retorna o dicionário baseado no idioma.
+ * Retorna o dicionário completo para o idioma.
  */
-export function getI18n(lang: 'pt' | 'en') {
-  return i18n[lang] || i18n.en
+export function getI18n(lang: LangCode): Dictionary {
+  return (i18n[lang] || i18n.en) as Dictionary
 }

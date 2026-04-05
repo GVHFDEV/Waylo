@@ -6,6 +6,20 @@ import { LogOut, User, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { signOut } from '@/app/actions/auth'
+import { getLanguageByCountry, getI18n, type LangCode } from '@/lib/i18n'
+
+const COUNTRY_NAMES: Record<string, { flag: string; name: string }> = {
+  BR: { flag: '🇧🇷', name: 'Brasil' },
+  PT: { flag: '🇵🇹', name: 'Portugal' },
+  US: { flag: '🇺🇸', name: 'United States' },
+  GB: { flag: '🇬🇧', name: 'United Kingdom' },
+  ES: { flag: '🇪🇸', name: 'España' },
+  FR: { flag: '🇫🇷', name: 'France' },
+  DE: { flag: '🇩🇪', name: 'Deutschland' },
+  IT: { flag: '🇮🇹', name: 'Italia' },
+  JP: { flag: '🇯🇵', name: '日本' },
+  AR: { flag: '🇦🇷', name: 'Argentina' },
+}
 
 interface ProfileData {
   full_name: string
@@ -112,13 +126,10 @@ export function ProfileDropdown() {
             <p className="text-sm font-bold text-foreground truncate">{profile?.full_name}</p>
             {profile?.country && (
               <p className="text-xs text-muted-foreground mt-0.5">
-                {profile.country === 'BR' ? '🇧🇷 Brasil' 
-                 : profile.country === 'US' ? '🇺🇸 United States'
-                 : profile.country === 'PT' ? '🇵🇹 Portugal'
-                 : profile.country === 'GB' ? '🇬🇧 United Kingdom'
-                 : profile.country === 'ES' ? '🇪🇸 España'
-                 : profile.country === 'FR' ? '🇫🇷 France'
-                 : profile.country}
+                {(() => {
+                  const c = COUNTRY_NAMES[profile.country]
+                  return c ? `${c.flag} ${c.name}` : profile.country
+                })()}
               </p>
             )}
           </div>
@@ -130,7 +141,7 @@ export function ProfileDropdown() {
               className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/5 transition-colors"
             >
               <LogOut className="h-4 w-4" />
-              Sair da conta
+              {getI18n(getLanguageByCountry(profile?.country || 'BR')).dashboard.profile.logout}
             </button>
           </form>
         </div>

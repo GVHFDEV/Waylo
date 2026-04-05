@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ActivityCard } from '@/components/itinerary/ActivityCard'
 import { ConciergeModal } from '@/components/itinerary/ConciergeModal'
 import { Button } from '@/components/ui/button'
-import { getLanguageByCountry, getI18n } from '@/lib/i18n'
+import { getLanguageByCountry, getI18n, type LangCode } from '@/lib/i18n'
 
 export default async function ViagemHubPage({ params }: { params: { id: string } }) {
   const supabase = await createClient()
@@ -35,7 +35,7 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
   const user = userRes.data.user
 
   // i18n Detection
-  let lang: 'pt' | 'en' = 'pt'
+  let lang: LangCode = 'pt'
   if (user) {
     const { data: profile } = await supabase.from('profiles').select('country').eq('id', user.id).single()
     lang = getLanguageByCountry(profile?.country || 'BR')

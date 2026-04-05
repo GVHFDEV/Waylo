@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -9,6 +9,7 @@ import { Loader2, Mail, Lock, ArrowRight, MailCheck, User, Globe, ChevronDown, C
 
 import { authSchema, type AuthFormValues } from '@/lib/schemas/auth'
 import { createClient } from '@/lib/supabase/client'
+import { getLanguageByCountry, getI18n } from '@/lib/i18n'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -47,30 +48,6 @@ const COUNTRIES = [
   { code: 'JP', name: '日本', flag: '🇯🇵' },
   { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
 ]
-
-const authErrorMap: Record<string, string> = {
-  'User already registered': 'Este e-mail já está cadastrado. Tente fazer login.',
-  'Invalid login credentials': 'E-mail ou senha incorretos.',
-  'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
-  'auth_callback_error': 'Problema na confirmação. Tente novamente.',
-  'Email rate limit exceeded': 'Muitas tentativas. Aguarde alguns minutos.',
-  'Request rate limit reached': 'Muitas tentativas. Aguarde alguns minutos.',
-  'over_email_send_rate_limit': 'Muitas tentativas. Aguarde 2 minutos.',
-  'For security purposes, you can only request this after 60 seconds.': 'Aguarde 60 segundos antes de tentar novamente.',
-}
-
-function translateError(message: string) {
-  // Verifica correspondência exata primeiro
-  if (authErrorMap[message]) return authErrorMap[message]
-  // Verifica se contém palavras-chave de rate limit
-  const lower = message.toLowerCase()
-  if (lower.includes('rate') || lower.includes('limit') || lower.includes('too many'))
-    return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.'
-  if (lower.includes('already registered') || lower.includes('already been registered'))
-    return 'Este e-mail já está cadastrado. Tente fazer login.'
-  // Fallback: mostra a mensagem real para debug
-  return message
-}
 
 /* ═══════════════════════════════════════════════════════════════════ */
 /*  COMPONENTE: CountrySelector                                       */
@@ -148,18 +125,46 @@ export default function LoginPage() {
   const [selectedCountry, setSelectedCountry] = useState('BR')
 
   const supabase = createClient()
+  const t = useMemo(() => getI18n(getLanguageByCountry(selectedCountry)), [selectedCountry])
 
   const form = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema),
     defaultValues: { fullName: '', email: '', password: '' },
   })
 
+  /* ─── TRADUTOR DE ERROS DINÂMICO ─── */
+  const translateError = (message: string) => {
+    const lower = message.toLowerCase()
+    
+    // Rate limit
+    if (lower.includes('rate') || lower.includes('limit') || lower.includes('too many') || lower.includes('seconds')) {
+      return t.login.errors.rate_limit
+    }
+    
+    // Já registrado
+    if (lower.includes('already registered') || lower.includes('already been registered')) {
+      return t.login.errors.already_registered
+    }
+    
+    // Credenciais inválidas
+    if (lower.includes('invalid') && lower.includes('credentials')) {
+      return t.login.errors.invalid_credentials
+    }
+    
+    // E-mail não confirmado
+    if (lower.includes('not confirmed') || lower.includes('verify')) {
+      return t.login.errors.email_not_confirmed
+    }
+
+    // Fallback
+    return t.login.errors.generic
+  }
+
   /* ─── Google OAuth ─── */
   const handleGoogleLogin = async () => {
     setIsGooglePending(true)
     setError(null)
 
-    // Salvar country no localStorage para que o callback/onboarding o recuperem
     localStorage.setItem('waylo_selected_country', selectedCountry)
 
     const { error } = await supabase.auth.signInWithOAuth({
@@ -173,7 +178,7 @@ export default function LoginPage() {
       },
     })
     if (error) {
-      setError(error.message)
+      setError(translateError(error.message))
       setIsGooglePending(false)
     }
   }
@@ -184,7 +189,6 @@ export default function LoginPage() {
     setError(null)
     try {
       if (isRegistering) {
-        // Salvar country no localStorage para ser aplicado após confirmação de e-mail
         localStorage.setItem('waylo_selected_country', selectedCountry)
 
         const { error: signUpError } = await supabase.auth.signUp({
@@ -226,14 +230,14 @@ export default function LoginPage() {
             <div className="h-16 w-16 rounded-full bg-[#E8833A]/10 flex items-center justify-center">
               <MailCheck className="h-8 w-8 text-[#E8833A]" />
             </div>
-            <CardTitle className="text-2xl font-heading font-bold">Verifique seu e-mail</CardTitle>
+            <CardTitle className="text-2xl font-heading font-bold">{t.login.verify_title}</CardTitle>
             <CardDescription className="text-muted-foreground text-base">
-              Enviamos um link de confirmação. Clique nele para ativar sua conta.
+              {t.login.verify_desc}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center pb-8">
             <Button variant="outline" className="rounded-xl font-bold" onClick={() => { setIsVerificationSent(false); setIsRegistering(false); form.reset() }}>
-              Voltar para o login
+              {t.login.verify_back}
             </Button>
           </CardContent>
         </Card>
@@ -247,25 +251,23 @@ export default function LoginPage() {
       {/* Branding */}
       <div className="mb-8 flex flex-col items-center space-y-2">
         <Image src="/logo.svg" alt="Waylo" width={137} height={45} priority style={{ height: '45px', width: 'auto' }} />
-        <p className="text-muted-foreground font-sans text-sm tracking-wide">Sua jornada começa aqui.</p>
+        <p className="text-muted-foreground font-sans text-sm tracking-wide">{t.footer.tagline}</p>
       </div>
 
       <Card className="w-full max-w-md border-border bg-card shadow-lg rounded-2xl">
         <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-2xl font-heading font-bold">
-            {isRegistering ? 'Criar uma conta' : 'Acessar sua conta'}
+            {isRegistering ? t.login.title_register : t.login.title_login}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            {isRegistering 
-              ? 'Preencha os dados para começar a explorar.' 
-              : 'Entre com suas credenciais para continuar.'}
+            {isRegistering ? t.login.desc_register : t.login.desc_login}
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-5">
           {/* ─── SELETOR DE PAÍS ─── */}
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none">País / Idioma</label>
+            <label className="text-sm font-medium leading-none">{t.login.country_label}</label>
             <CountrySelector value={selectedCountry} onChange={setSelectedCountry} />
           </div>
 
@@ -286,7 +288,7 @@ export default function LoginPage() {
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
                   <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                 </svg>
-                Continuar com Google
+                {t.login.google}
               </>
             )}
           </Button>
@@ -295,7 +297,7 @@ export default function LoginPage() {
           <div className="relative">
             <div className="absolute inset-0 flex items-center"><Separator /></div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-card px-3 text-muted-foreground uppercase tracking-widest font-bold text-[10px]">Ou e-mail</span>
+              <span className="bg-card px-3 text-muted-foreground uppercase tracking-widest font-bold text-[10px]">{t.login.or_email}</span>
             </div>
           </div>
 
@@ -311,11 +313,11 @@ export default function LoginPage() {
               {isRegistering && (
                 <FormField control={form.control} name="fullName" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nome Completo</FormLabel>
+                    <FormLabel>{t.login.name}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                        <Input placeholder="Seu nome" className="pl-9 h-11 rounded-xl" {...field} />
+                        <Input placeholder={t.login.name_placeholder} className="pl-9 h-11 rounded-xl" {...field} />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -325,11 +327,11 @@ export default function LoginPage() {
 
               <FormField control={form.control} name="email" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>E-mail</FormLabel>
+                  <FormLabel>{t.login.email}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input placeholder="exemplo@waylo.app" className="pl-9 h-11 rounded-xl" {...field} />
+                      <Input placeholder={t.login.email_placeholder} className="pl-9 h-11 rounded-xl" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -338,11 +340,11 @@ export default function LoginPage() {
 
               <FormField control={form.control} name="password" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Senha</FormLabel>
+                  <FormLabel>{t.login.password}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input type="password" className="pl-9 h-11 rounded-xl" {...field} />
+                      <Input type="password" placeholder="••••••••" className="pl-9 h-11 rounded-xl" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -358,7 +360,7 @@ export default function LoginPage() {
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (
                   <>
-                    {isRegistering ? 'Cadastrar' : 'Entrar'}
+                    {isRegistering ? t.login.submit_register : t.login.submit_login}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -370,9 +372,9 @@ export default function LoginPage() {
         <CardFooter className="flex flex-col space-y-4 pt-0">
           <div className="text-sm text-center text-muted-foreground">
             {isRegistering ? (
-              <>Já tem uma conta? <button type="button" onClick={() => setIsRegistering(false)} className="font-semibold text-[#E8833A] hover:underline underline-offset-4">Faça login</button></>
+              <>{t.login.toggle_to_login} <button type="button" onClick={() => setIsRegistering(false)} className="font-semibold text-[#E8833A] hover:underline underline-offset-4">{t.login.toggle_login_link}</button></>
             ) : (
-              <>Não tem uma conta? <button type="button" onClick={() => setIsRegistering(true)} className="font-semibold text-[#E8833A] hover:underline underline-offset-4">Cadastre-se grátis</button></>
+              <>{t.login.toggle_to_register} <button type="button" onClick={() => setIsRegistering(true)} className="font-semibold text-[#E8833A] hover:underline underline-offset-4">{t.login.toggle_register_link}</button></>
             )}
           </div>
         </CardFooter>

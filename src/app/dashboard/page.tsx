@@ -7,20 +7,21 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { SearchCard } from '@/components/dashboard/search-card'
+import { getLanguageByCountry, getI18n, type LangCode } from '@/lib/i18n'
 
-/**
- * Página Inicial do Dashboard (Explorar).
- * 
- * Foca em uma experiência "Search-First":
- * - Header de boas-vindas personalizado.
- * - Search Card (Cérebro) centralizado.
- * - Grid de inspiração com destinos premium.
- */
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Viajante'
+  const userName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Explorer'
+
+  // i18n: detecta língua do perfil
+  let lang: LangCode = 'pt'
+  if (user) {
+    const { data: profile } = await supabase.from('profiles').select('country').eq('id', user.id).single()
+    if (profile?.country) lang = getLanguageByCountry(profile.country)
+  }
+  const t = getI18n(lang)
 
   const inspirationDestinations = [
     { city: 'Paris', country: 'França', image: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&q=80&w=800' },
@@ -31,35 +32,23 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-12">
-      {/* 
-        1. HEADER DE BOAS-VINDAS 
-        Personalizado com o nome do usuário.
-      */}
       <section className="space-y-1">
         <h1 className="text-3xl md:text-5xl font-heading font-bold text-foreground">
-          Olá, <span className="text-primary">{userName}</span>
+          {t.dashboard.greeting} <span className="text-primary">{userName}</span>
         </h1>
         <p className="text-lg text-muted-foreground font-sans max-w-xl">
-          Para onde vamos agora? Sua próxima jornada começa aqui.
+          {t.dashboard.subtitle}
         </p>
       </section>
 
-      {/* 
-        2. SEARCH CARD (O "CÉREBRO" - Refatorado Missão 11) 
-        Captura Origem, Destino e Datas via Client Component.
-      */}
       <section className="relative w-full">
         <SearchCard />
       </section>
 
-      {/* 
-        3. SEÇÃO DE INSPIRAÇÃO 
-        Grid de destinos premium com imagens.
-      */}
       <section className="space-y-6">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-heading font-bold text-foreground">Para onde vamos agora?</h2>
-          <Button variant="ghost" className="text-primary hover:text-primary-hover font-bold text-sm">Ver todos</Button>
+          <h2 className="text-2xl font-heading font-bold text-foreground">{t.dashboard.inspiration}</h2>
+          <Button variant="ghost" className="text-primary hover:text-primary-hover font-bold text-sm">{t.dashboard.see_all}</Button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -86,12 +75,11 @@ export default async function DashboardPage() {
         </div>
       </section>
       
-      {/* 4. ACTIONS MOCK (Footer do dashboard) */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-6 py-8">
         {[
-          { icon: Plane, label: 'Meus Voos', color: 'bg-blue-500/10 text-blue-600' },
-          { icon: Navigation, label: 'Mapa Interativo', color: 'bg-green-500/10 text-green-600' },
-          { icon: Compass, label: 'Explorar IA', color: 'bg-amber-500/10 text-amber-600' },
+          { icon: Plane, label: t.dashboard.my_flights, color: 'bg-blue-500/10 text-blue-600' },
+          { icon: Navigation, label: t.dashboard.interactive_map, color: 'bg-green-500/10 text-green-600' },
+          { icon: Compass, label: t.dashboard.explore_ai, color: 'bg-amber-500/10 text-amber-600' },
         ].map((item, idx) => (
           <Card key={idx} className="border-none bg-muted/50 hover:bg-muted transition-colors cursor-pointer group">
             <CardContent className="p-6 flex items-center space-x-4">

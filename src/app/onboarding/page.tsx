@@ -1,10 +1,11 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Globe, ArrowRight, Loader2, Check, ChevronDown } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
+import { getLanguageByCountry, getI18n } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -33,6 +34,7 @@ export default function OnboardingPage() {
   const [selectedCountry, setSelectedCountry] = useState('')
   const [isPending, setIsPending] = useState(false)
   const supabase = createClient()
+  const t = useMemo(() => getI18n(getLanguageByCountry(selectedCountry || 'BR')), [selectedCountry])
 
   const handleFinish = async () => {
     if (!selectedCountry) return
@@ -68,17 +70,17 @@ export default function OnboardingPage() {
       {/* Branding — idêntico ao login */}
       <div className="mb-8 flex flex-col items-center space-y-2">
         <Image src="/logo.svg" alt="Waylo" width={137} height={45} priority style={{ height: '45px', width: 'auto' }} />
-        <p className="text-muted-foreground font-sans text-sm tracking-wide">Sua jornada começa aqui.</p>
+        <p className="text-muted-foreground font-sans text-sm tracking-wide">{t.footer.tagline}</p>
       </div>
 
       {/* Card — mesma estrutura do login */}
       <Card className="w-full max-w-md border-border bg-card shadow-lg rounded-2xl">
         <CardHeader className="space-y-1 pb-4">
           <CardTitle className="text-2xl font-heading font-bold">
-            Onde você mora?
+            {t.onboarding.title}
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Isso define o idioma e as sugestões personalizadas.
+            {t.onboarding.subtitle}
           </CardDescription>
         </CardHeader>
 
@@ -118,7 +120,7 @@ export default function OnboardingPage() {
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <>
-                Continuar
+                {t.onboarding.button}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </>
             )}

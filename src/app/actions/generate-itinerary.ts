@@ -3,7 +3,7 @@
 import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@/lib/supabase/server";
 import { ItineraryResponseSchema } from "@/lib/schemas/itinerary";
-import { getLanguageByCountry } from "@/lib/i18n";
+import { getLanguageByCountry, getI18n } from "@/lib/i18n";
 
 async function updateStatus(supabase: any, id: string, status: string) {
   const { data: current } = await supabase.from('itineraries').select('content').eq('id', id).single();
@@ -18,14 +18,15 @@ export async function generateItinerary(itineraryId?: string, formData?: any) {
   const mistral = new Mistral({ apiKey });
   const supabase = itineraryId ? await createClient() : null;
 
-  // [V2.0] Idioma Adaptativo
+  // [V2.2] Idioma Adaptativo Multi-Língua
   let userLanguage = 'Português (Brasil)';
   if (itineraryId && supabase) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase.from('profiles').select('country').eq('id', user.id).single();
       const langCode = getLanguageByCountry(profile?.country || 'BR');
-      userLanguage = langCode === 'pt' ? 'Português (Brasil)' : 'English';
+      const dict = getI18n(langCode);
+      userLanguage = dict.ai.language;
     }
   }
 
