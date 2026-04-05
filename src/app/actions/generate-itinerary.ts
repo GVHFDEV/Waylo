@@ -2,6 +2,13 @@
 
 import { Mistral } from "@mistralai/mistralai";
 import { createClient } from "@/lib/supabase/server";
+import { ItineraryResponseSchema } from "@/lib/schemas/itinerary";
+
+async function updateStatus(supabase: any, id: string, status: string) {
+  const { data: current } = await supabase.from('itineraries').select('content').eq('id', id).single();
+  const content = current?.content || {};
+  await supabase.from('itineraries').update({ content: { ...content, status } }).eq('id', id);
+}
 
 export async function generateItinerary(itineraryId?: string, formData?: any) {
   const apiKey = process.env.MISTRAL_API_KEY;
@@ -344,7 +351,14 @@ Silent computation complete. Output the JSON. Nothing else.`;
   if (!content) throw new Error("Motor Mistral falhou ao gerar conteúdo.");
 
   try {
-    const finalJSON = JSON.parse(typeof content === 'string' ? content : JSON.stringify(content));
+    const rawContent = typeof content === 'string' ? content : JSON.stringify(content);
+    const parsedJSON = JSON.parse(rawContent);
+    const validation = ItineraryResponseSchema.safeParse(parsedJSON);
+
+    if (!validation.success) {
+      console.error("❌ Validação Zod falhou:", validation.error.format());
+      throw new Error("Estrutura inválida.");
+    }
 
     if (itineraryId && supabase) {
       const { data: trip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
@@ -353,25 +367,16 @@ Silent computation complete. Output the JSON. Nothing else.`;
       await supabase
         .from('itineraries')
         .update({
-          content: { ...currentContent, ...finalJSON, status: 'ready' }
+          content: { ...currentContent, ...validation.data, status: 'ready' }
         })
         .eq('id', itineraryId);
     }
 
-    return finalJSON;
-  } catch (e) {
-    console.error("Erro ao parsear JSON da Mistral:", e);
-    const match = (content as string).match(/\{[\s\S]*\}/);
-    if (match) {
-      const finalJSON = JSON.parse(match[0]);
-      if (itineraryId && supabase) {
-        const { data: trip } = await supabase.from('itineraries').select('content').eq('id', itineraryId).single();
-        const currentContent = trip?.content || {};
-        await supabase.from('itineraries').update({
-          content: { ...currentContent, ...finalJSON, status: 'ready' }
-        }).eq('id', itineraryId);
-      }
-      return finalJSON;
+    return validation.data;
+  } catch (e: any) {
+    console.error("Erro na validação/parse do JSON gerado:", e);
+    if (itineraryId && supabase) {
+      await updateStatus(supabase, itineraryId, 'error');
     }
     throw e;
   }

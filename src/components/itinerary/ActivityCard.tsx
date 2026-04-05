@@ -21,9 +21,9 @@ function simpleHash(str: string): number {
 
 function PeriodIcon({ period }: { period: string }) {
   const p = period?.toLowerCase() ?? ''
-  if (p.includes('manhã') || p.includes('manha')) return <Sunrise className="h-3.5 w-3.5" />
-  if (p.includes('tarde')) return <Sun className="h-3.5 w-3.5" />
-  if (p.includes('noite')) return <Moon className="h-3.5 w-3.5" />
+  if (p.includes('manhã') || p.includes('manha') || p.includes('morning') || p.includes('mañana') || p.includes('matin') || p.includes('morgen') || p.includes('mattina')) return <Sunrise className="h-3.5 w-3.5" />
+  if (p.includes('tarde') || p.includes('afternoon') || p.includes('après-midi') || p.includes('nachmittag') || p.includes('pomeriggio')) return <Sun className="h-3.5 w-3.5" />
+  if (p.includes('noite') || p.includes('night') || p.includes('evening') || p.includes('noche') || p.includes('soir') || p.includes('abend') || p.includes('sera')) return <Moon className="h-3.5 w-3.5" />
   return <Clock className="h-3.5 w-3.5" />
 }
 
