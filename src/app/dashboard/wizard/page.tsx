@@ -382,6 +382,11 @@ function WizardPageContent() {
 
       {/* ─── NAVIGATION ─── */}
       <div className="flex pt-6 border-t border-border justify-between items-center">
+        {step === 8 && (
+          <Button variant="ghost" onClick={() => handleSelect('selected_hotel', '')} className="font-bold text-muted-foreground hover:text-foreground h-12 rounded-xl mr-2">
+            Pular
+          </Button>
+        )}
         <Button variant="ghost" onClick={handleBack} className="font-bold text-muted-foreground hover:text-foreground h-12 rounded-xl">
           <ChevronLeft className="mr-2 h-4 w-4" />
           {t.common.back}
@@ -394,8 +399,7 @@ function WizardPageContent() {
             (step === 1 && !selections.companion) ||
             (step === 2 && !selections.pace) ||
             (step === 3 && !selections.budget) ||
-            (step === 4 && !selections.vibes) ||
-            (step === 8 && !selections.selected_hotel)
+            (step === 4 && !selections.vibes)
           }
           className="font-bold min-w-[140px] h-12 rounded-xl shadow-lg shadow-primary/20 bg-primary hover:bg-primary/90 text-white"
         >

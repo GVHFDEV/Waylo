@@ -16,7 +16,7 @@ export async function GET(request: Request) {
   }
 
   const fsqKey = process.env.FOURSQUARE_API_KEY || process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY
-  
+
   if (!fsqKey || !placeName) {
     return NextResponse.json(fallback)
   }
@@ -35,13 +35,13 @@ export async function GET(request: Request) {
     const formattedAddress = place.location?.formatted_address || place.location?.address || null
 
     const [photoRes, tipRes] = await Promise.all([
-      fetch(`https://api.foursquare.com/v3/places/${fsqId}/photos?limit=1&sort=POPULAR`, { 
-        headers: { Authorization: fsqKey, Accept: 'application/json' }, 
-        next: { revalidate: 86400 } 
+      fetch(`https://api.foursquare.com/v3/places/${fsqId}/photos?limit=1&sort=POPULAR`, {
+        headers: { Authorization: fsqKey, Accept: 'application/json' },
+        next: { revalidate: 86400 }
       }),
-      fetch(`https://api.foursquare.com/v3/places/${fsqId}/tips?limit=1&sort=POPULAR`, { 
-        headers: { Authorization: fsqKey, Accept: 'application/json' }, 
-        next: { revalidate: 86400 } 
+      fetch(`https://api.foursquare.com/v3/places/${fsqId}/tips?limit=1&sort=POPULAR`, {
+        headers: { Authorization: fsqKey, Accept: 'application/json' },
+        next: { revalidate: 86400 }
       })
     ])
 
@@ -57,13 +57,13 @@ export async function GET(request: Request) {
       if (tips?.[0]) tip = tips[0].text
     } catch {}
 
-    const data: FoursquareData = { 
-      photoUrl, 
-      address: formattedAddress, 
-      rating: place.rating ?? null, 
-      category: place.categories?.[0]?.name || null, 
-      tip, 
-      mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + destination)}` 
+    const data: FoursquareData = {
+      photoUrl,
+      address: formattedAddress,
+      rating: place.rating ?? null,
+      category: place.categories?.[0]?.name || null,
+      tip,
+      mapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + destination)}`
     }
 
     return NextResponse.json(data)

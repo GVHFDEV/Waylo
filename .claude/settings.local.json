@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /b /s \"C:\\\\Users\\\\gusta\\\\Downloads\\\\WAYLO-V1\\\\.cursorrules\" \"C:\\\\Users\\\\gusta\\\\Downloads\\\\WAYLO-V1\\\\*manifest*\")",
+      "Read(//c/Users/gusta/.claude/**)",
+      "Bash(ls:*)",
+      "Bash(grep -r /api/ C:UsersgustaDownloadsWAYLO-V1srccomponents C:UsersgustaDownloadsWAYLO-V1srcapp --include=*.tsx -l)",
+      "Bash(find C:UsersgustaDownloadsWAYLO-V1src -type f -name *.tsx)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

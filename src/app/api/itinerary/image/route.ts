@@ -17,26 +17,26 @@ export async function GET(request: Request) {
 
   const fallback = `https://picsum.photos/seed/${encodeURIComponent(placeName + activityDescription)}/800/400`
   const accessKey = process.env.UNSPLASH_ACCESS_KEY
-  
+
   if (!accessKey || !placeName) {
     return NextResponse.json({ url: fallback })
   }
 
   try {
-    const primaryQuery = placeName
-    const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(primaryQuery)}&per_page=5&orientation=landscape`, {
+    const primaryQuery = `${placeName} ${destination}`
+    const res = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(primaryQuery)}&per_page=10&orientation=landscape`, {
       headers: { Authorization: `Client-ID ${accessKey}` },
       next: { revalidate: 86400 },
     })
 
     if (!res.ok) return NextResponse.json({ url: fallback })
-    
+
     let data = await res.json()
     let results = data?.results
 
-    if (!results?.length) {
-      const fallbackQuery = `${destination} tourism ${activityDescription}`
-      const res2 = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(fallbackQuery)}&per_page=5&orientation=landscape`, {
+    if (!results?.length && destination) {
+      const fallbackQuery = destination
+      const res2 = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(fallbackQuery)}&per_page=10&orientation=landscape`, {
         headers: { Authorization: `Client-ID ${accessKey}` },
         next: { revalidate: 86400 },
       })
@@ -46,11 +46,12 @@ export async function GET(request: Request) {
     }
 
     if (!results?.length) return NextResponse.json({ url: fallback })
-    
+
     const uniqueKey = `${placeName}-${activityDescription}-${destination}`
     const idx = simpleHash(uniqueKey) % results.length
-    const url = `${results[idx].urls.raw}&w=800&h=500&fit=crop&q=80`
-    
+    const photo = results[idx]
+    const url = photo.urls.small || photo.urls.regular || photo.urls.full || fallback
+
     return NextResponse.json({ url })
   } catch {
     return NextResponse.json({ url: fallback })

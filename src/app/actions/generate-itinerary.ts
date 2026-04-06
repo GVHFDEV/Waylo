@@ -30,7 +30,8 @@ export async function generateItinerary(itineraryId?: string, formData?: any) {
         additional_notes: trip.content?.additional_notes,
         dealbreakers: trip.content?.dealbreakers,
         vibes: trip.content?.vibes,
-        dietary_restrictions: trip.content?.dietary_restrictions
+        dietary_restrictions: trip.content?.dietary_restrictions,
+        selected_hotel: trip.content?.selected_hotel || null
       };
     }
   }
@@ -96,6 +97,7 @@ Before generating any JSON, execute this internal checklist silently:
   Dealbreakers:         "${payload.dealbreakers || 'None specified'}"
   Core Vibes:           "${payload.vibes || 'Premium immersive tourism'}"
   Dietary Restrictions: "${payload.dietary_restrictions || 'None'}"
+  Hotel Base:           "${payload.selected_hotel || 'Not defined — AI must choose optimal neighborhood for logistics and proximity to main attractions'}"
 
 [MODULE 2 — THE W.A.Y.L.O. RULESET]
 
@@ -229,6 +231,16 @@ RULE SET L: LOGISTICS, CURATION & MILITARY SECURITY
          ONLY when the transport IS the experience or is critically non-obvious.
          Never include "take a taxi to X" as an item.
 
+  L.6 — HOTEL NOT DEFINED PROTOCOL:
+         If the user has NOT defined a hotel:
+         (a) CHOOSE the most strategic neighborhood for the itinerary's logistics.
+         (b) SUGGEST 2-3 verified hotels in that neighborhood in the "hotels" array.
+         (c) ANCHOR all daily activities around that neighborhood's geographic center.
+         (d) OPTIMIZE for proximity to the Anchor activities and the user's Absolute Desires.
+         (e) Use phrases like "região da sua hospedagem" or "perto do seu hotel" for
+             rest/downtime items where a specific hotel is not known.
+         (f) Leave Map URLs null for items referencing the hotel area.
+
 RULE SET O: OASIS — FATIGUE & RECOVERY MANAGEMENT
   O.1 — PACE-BASED EMPATHY:
          → Pace = "Relaxado": At least one full period per day must be free/rest/contemplative.
@@ -326,7 +338,8 @@ Before returning the JSON, silently verify:
   ✓ All values are in pt-BR. All keys are in English.
   ✓ Massive anchors (5h+) have overflow buffer periods.
   ✓ The hotel recommendation matches the budget tier.
-  ✓ If suggesting rest or downtime and the specific hotel is NOT known, DO NOT invent a hotel name or address. Use general terms like 'região da sua hospedagem' and leave the Map URL null.
+  ✓ If suggesting rest or downtime and the specific hotel is NOT known, use general terms like 'região da sua hospedagem' and leave the Map URL null.
+  ✓ Hotel is not defined? Do NOT skip the hotels array — suggest 2-3 verified options in the best neighborhood.
   ✓ If the user mentions a specific branch (e.g., 'The world's largest McDonald's'), you MUST search your data to provide the exact real-world branch name and neighborhood for the GPS.
   ✓ The JSON is valid and contains no trailing commas or syntax errors.
 

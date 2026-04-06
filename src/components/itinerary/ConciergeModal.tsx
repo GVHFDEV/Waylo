@@ -12,7 +12,8 @@ import {
   Users2,
   Navigation,
   X,
-  Footprints
+  Footprints,
+  CarFront
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -94,6 +95,7 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
     { id: 'public', label: t.concierge.transport.public, icon: Bus },
     { id: 'uber', label: t.concierge.transport.uber, icon: Navigation },
     { id: 'rental', label: t.concierge.transport.rental, icon: Car },
+    { id: 'personal', label: t.concierge.transport.personal, icon: CarFront },
     { id: 'walking', label: t.concierge.transport.walking, icon: Footprints },
   ]
 
@@ -205,7 +207,7 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
             <Button 
               className="bg-[#E8833A] hover:bg-[#D16D29] text-white font-bold flex-1 h-12 rounded-xl shadow-lg shadow-[#E8833A]/20 order-1 sm:order-2 text-sm transition-all hover:scale-[1.01]" 
               onClick={handleNext} 
-              disabled={isSaving || (step === 2 && !selections.transport) || (step === 3 && !selections.total_budget)}
+              disabled={isSaving || (step === 3 && !selections.total_budget)}
             >
               {isSaving ? t.common.loading : (step === 3 ? t.concierge.done : t.common.next)}
               {!isSaving && <ChevronRight className="ml-1.5 h-4 w-4" />}

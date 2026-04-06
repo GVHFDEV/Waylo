@@ -1,7 +1,6 @@
-import React from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
-import { Search, Map, Plus, User } from 'lucide-react'
+import Image from 'next/image'
+import { Briefcase, Map, MapPin, User } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 
@@ -59,7 +58,7 @@ export default function DashboardLayout({
 
           <nav className="flex items-center space-x-6">
             <Link href="/dashboard/explore" className="text-sm font-medium text-muted-foreground hover:text-foreground">Explorar</Link>
-            <Link href="/dashboard/trips" className="text-sm font-medium text-muted-foreground hover:text-foreground">Minhas Viagens</Link>
+            <Link href="/dashboard/trips" className="text-sm font-medium text-foreground hover:text-foreground">Minhas Viagens</Link>
             
             <Separator orientation="vertical" className="h-6 mx-2" />
 
@@ -88,16 +87,16 @@ export default function DashboardLayout({
       <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-background/95 backdrop-blur-lg md:hidden">
         <div className="grid h-16 grid-cols-4 items-center justify-items-center">
           <Link href="/dashboard" className="flex flex-col items-center justify-center space-y-1 text-primary">
-            <Search className="h-6 w-6" />
+            <MapPin className="h-6 w-6" />
             <span className="text-[10px] font-medium font-sans">Busca</span>
           </Link>
           <Link href="/dashboard/map" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
             <Map className="h-6 w-6" />
             <span className="text-[10px] font-medium font-sans">Mapa</span>
           </Link>
-          <Link href="/dashboard/create" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
-            <Plus className="h-6 w-6" />
-            <span className="text-[10px] font-medium font-sans">Criar</span>
+          <Link href="/dashboard/trips" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
+            <Briefcase className="h-6 w-6" />
+            <span className="text-[10px] font-medium font-sans">Minhas Viagens</span>
           </Link>
           <Link href="/dashboard/profile" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
             <User className="h-6 w-6" />
