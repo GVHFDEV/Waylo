@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.4sqi.net', // Libera os servidores de imagem do Foursquare
+        hostname: '**.4sqi.net',
       },
       {
         protocol: 'https',
@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Enable after() API for background tasks
+  serverExternalPackages: [
+  ],
 };
 
 export default nextConfig;
