@@ -8,16 +8,97 @@ import {
   Bus,
   Wallet,
   ChevronRight,
+  ChevronDown,
   CheckCircle2,
   Users2,
   Navigation,
   X,
   Footprints,
-  CarFront
+  CarFront,
+  Check,
+  CircleHelp
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { getLanguageByCountry, getI18n, type LangCode } from '@/lib/i18n'
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  CURRENCIES                                                   */
+/* ═══════════════════════════════════════════════════════════════ */
+
+const CURRENCIES = [
+  { code: 'BRL', name: 'Real Brasileiro', symbol: 'R$', flag: '🇧🇷' },
+  { code: 'USD', name: 'US Dollar', symbol: '$', flag: '🇺🇸' },
+  { code: 'EUR', name: 'Euro', symbol: '€', flag: '🇪🇺' },
+  { code: 'GBP', name: 'British Pound', symbol: '£', flag: '🇬🇧' },
+  { code: 'JPY', name: 'Japanese Yen', symbol: '¥', flag: '🇯🇵' },
+  { code: 'ARS', name: 'Peso Argentino', symbol: '$', flag: '🇦🇷' },
+  { code: 'MXN', name: 'Peso Mexicano', symbol: '$', flag: '🇲🇽' },
+  { code: 'COP', name: 'Peso Colombiano', symbol: '$', flag: '🇨🇴' },
+  { code: 'CAD', name: 'Canadian Dollar', symbol: '$', flag: '🇨🇦' },
+  { code: 'AUD', name: 'Australian Dollar', symbol: '$', flag: '🇦🇺' },
+]
+
+function CurrencySelector({ value, onChange }: { value: string; onChange: (code: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const selected = CURRENCIES.find(c => c.code === value)
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "w-full h-12 px-3 flex items-center justify-between rounded-xl border bg-transparent text-sm font-medium transition-all",
+          "border-input hover:border-[#E8833A]/40 focus:outline-none focus:ring-2 focus:ring-[#E8833A]/20 focus:border-[#E8833A]",
+          !value && "text-muted-foreground"
+        )}
+      >
+        <div className="flex items-center gap-2">
+          {selected ? (
+            <>
+              <Wallet className="h-4 w-4 text-[#E8833A]" />
+              <span className="text-base">{selected.flag}</span>
+              <span className="text-foreground">{selected.name} ({selected.symbol})</span>
+            </>
+          ) : (
+            <>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+              <span>Selecione a moeda</span>
+            </>
+          )}
+        </div>
+        <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", isOpen && "rotate-180")} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-full max-h-52 overflow-y-auto rounded-xl border border-border bg-card shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
+          {CURRENCIES.map((c) => (
+            <button
+              key={c.code}
+              type="button"
+              onClick={() => { onChange(c.code); setIsOpen(false) }}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-medium hover:bg-muted/60 transition-colors",
+                value === c.code && "bg-[#E8833A]/5 text-[#E8833A]"
+              )}
+            >
+              <span className="text-lg">{c.flag}</span>
+              <span className="flex-1 text-left">
+                {c.name} <span className="text-muted-foreground">({c.symbol})</span>
+              </span>
+              {value === c.code && <Check className="h-4 w-4 text-[#E8833A]" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
+/*  COMPONENTE PRINCIPAL                                          */
+/* ═══════════════════════════════════════════════════════════════ */
 
 interface ConciergeModalProps {
   tripId: string
@@ -32,7 +113,8 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
   const [selections, setSelections] = useState({
     emails: '',
     transport: '',
-    total_budget: ''
+    total_budget: '',
+    currency: 'BRL'
   })
 
   const supabase = createClient()
@@ -66,7 +148,10 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
   }
 
   const handleNext = async () => {
-    if (step === 2) await handleSaveToSupabase({ transport: selections.transport })
+    if (step === 2) await handleSaveToSupabase({
+      transport: selections.transport,
+      currency: selections.currency
+    })
     if (step === 3) {
       await handleSaveToSupabase({ total_budget: selections.total_budget })
       sessionStorage.setItem(`concierge-dismissed-${tripId}`, 'true')
@@ -97,22 +182,23 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
     { id: 'rental', label: t.concierge.transport.rental, icon: Car },
     { id: 'personal', label: t.concierge.transport.personal, icon: CarFront },
     { id: 'walking', label: t.concierge.transport.walking, icon: Footprints },
+    { id: 'other', label: t.concierge.transport.other, icon: CircleHelp },
   ]
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
       <div className="relative w-full max-w-md bg-card border border-border rounded-2xl overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-4 duration-500">
-        
-        {/* Progress Bar (Thin & Elegant) */}
+
+        {/* Progress Bar */}
         <div className="bg-muted h-[3px] w-full">
-          <div 
-            className="h-full bg-[#E8833A] transition-all duration-700 ease-out" 
-            style={{ width: `${(step / 3) * 100}%` }} 
+          <div
+            className="h-full bg-[#E8833A] transition-all duration-700 ease-out"
+            style={{ width: `${(step / 3) * 100}%` }}
           />
         </div>
 
-        <button 
-          onClick={handleClose} 
+        <button
+          onClick={handleClose}
           className="absolute top-5 right-5 p-2 rounded-full hover:bg-muted transition-colors text-muted-foreground z-10"
         >
           <X className="h-4 w-4" />
@@ -134,11 +220,11 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
                 <div className="space-y-4">
                   <div className="relative group">
                     <Users2 className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-[#E8833A] transition-colors" />
-                    <Input 
-                      placeholder={t.concierge.email_placeholder} 
-                      className="h-12 pl-12 rounded-xl border border-border bg-transparent focus-visible:ring-[#E8833A]/20 focus-visible:border-[#E8833A] font-sans text-sm transition-all" 
-                      value={selections.emails} 
-                      onChange={(e) => setSelections(prev => ({ ...prev, emails: e.target.value }))} 
+                    <Input
+                      placeholder={t.concierge.email_placeholder}
+                      className="h-12 pl-12 rounded-xl border border-border bg-transparent focus-visible:ring-[#E8833A]/20 focus-visible:border-[#E8833A] font-sans text-sm transition-all"
+                      value={selections.emails}
+                      onChange={(e) => setSelections(prev => ({ ...prev, emails: e.target.value }))}
                     />
                   </div>
                   <p className="text-[10px] font-bold text-muted-foreground/40 uppercase text-center tracking-widest">
@@ -148,41 +234,50 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
               )}
 
               {step === 2 && (
-                <div className="grid grid-cols-2 gap-3">
-                  {transportOptions.map((opt) => (
-                    <button 
-                      key={opt.id} 
-                      onClick={() => setSelections(prev => ({ ...prev, transport: opt.id }))} 
-                      className={cn(
-                        "flex flex-col items-center justify-center p-5 rounded-xl border transition-all gap-2.5 group",
-                        selections.transport === opt.id 
-                          ? "border-[#E8833A] bg-[#E8833A]/5 shadow-sm" 
-                          : "border-border hover:border-[#E8833A]/30 bg-card hover:bg-muted/30"
-                      )}
-                    >
-                      <opt.icon className={cn(
-                        "h-5 w-5 transition-all group-hover:scale-110", 
-                        selections.transport === opt.id ? "text-[#E8833A]" : "text-muted-foreground"
-                      )} />
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-wider", 
-                        selections.transport === opt.id ? "text-[#E8833A]" : "text-muted-foreground"
-                      )}>{opt.label}</span>
-                    </button>
-                  ))}
+                <div className="space-y-4">
+                  {/* Transport Options Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    {transportOptions.map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setSelections(prev => ({ ...prev, transport: opt.id }))}
+                        className={cn(
+                          "flex flex-col items-center justify-center p-5 rounded-xl border transition-all gap-2.5 group",
+                          selections.transport === opt.id
+                            ? "border-[#E8833A] bg-[#E8833A]/5 shadow-sm"
+                            : "border-border hover:border-[#E8833A]/30 bg-card hover:bg-muted/30"
+                        )}
+                      >
+                        <opt.icon className={cn(
+                          "h-5 w-5 transition-all group-hover:scale-110",
+                          selections.transport === opt.id ? "text-[#E8833A]" : "text-muted-foreground"
+                        )} />
+                        <span className={cn(
+                          "text-[10px] font-bold uppercase tracking-wider",
+                          selections.transport === opt.id ? "text-[#E8833A]" : "text-muted-foreground"
+                        )}>{opt.label}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {step === 3 && (
-                <div className="space-y-5">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      {t.concierge.currency_label}
+                    </label>
+                    <CurrencySelector value={selections.currency} onChange={(code) => setSelections(prev => ({ ...prev, currency: code }))} />
+                  </div>
                   <div className="relative group">
                     <Wallet className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-[#E8833A] transition-colors" />
-                    <Input 
-                      type="number" 
-                      placeholder={t.concierge.budget_placeholder} 
-                      className="h-12 pl-12 rounded-xl border border-border bg-transparent focus-visible:ring-[#E8833A]/20 focus-visible:border-[#E8833A] font-sans text-lg font-bold transition-all" 
-                      value={selections.total_budget} 
-                      onChange={(e) => setSelections(prev => ({ ...prev, total_budget: e.target.value }))} 
+                    <Input
+                      type="number"
+                      placeholder={t.concierge.budget_placeholder}
+                      className="h-12 pl-12 rounded-xl border border-border bg-transparent focus-visible:ring-[#E8833A]/20 focus-visible:border-[#E8833A] font-sans text-lg font-bold transition-all"
+                      value={selections.total_budget}
+                      onChange={(e) => setSelections(prev => ({ ...prev, total_budget: e.target.value }))}
                     />
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-muted/30 rounded-xl border border-border">
@@ -197,16 +292,16 @@ export function ConciergeModal({ tripId, status }: ConciergeModalProps) {
           </div>
 
           <footer className="flex flex-col sm:flex-row gap-3 pt-4">
-            <Button 
-              variant="ghost" 
-              className="font-bold text-muted-foreground flex-1 order-2 sm:order-1 h-12 rounded-xl hover:bg-muted transition-colors" 
+            <Button
+              variant="ghost"
+              className="font-bold text-muted-foreground flex-1 order-2 sm:order-1 h-12 rounded-xl hover:bg-muted transition-colors"
               onClick={handleClose}
             >
               {t.concierge.skip}
             </Button>
-            <Button 
-              className="bg-[#E8833A] hover:bg-[#D16D29] text-white font-bold flex-1 h-12 rounded-xl shadow-lg shadow-[#E8833A]/20 order-1 sm:order-2 text-sm transition-all hover:scale-[1.01]" 
-              onClick={handleNext} 
+            <Button
+              className="bg-[#E8833A] hover:bg-[#D16D29] text-white font-bold flex-1 h-12 rounded-xl shadow-lg shadow-[#E8833A]/20 order-1 sm:order-2 text-sm transition-all hover:scale-[1.01]"
+              onClick={handleNext}
               disabled={isSaving || (step === 3 && !selections.total_budget)}
             >
               {isSaving ? t.common.loading : (step === 3 ? t.concierge.done : t.common.next)}

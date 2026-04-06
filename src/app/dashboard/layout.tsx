@@ -1,23 +1,28 @@
+'use client'
+
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { Briefcase, Map, MapPin, User } from 'lucide-react'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 import { ProfileDropdown } from '@/components/dashboard/ProfileDropdown'
 
-/**
- * Layout do Dashboard do Waylo (Refatorado - Missão 06).
- * 
- * Estrutura:
- * - Mobile Header: Logo centralizada fixa no topo.
- * - Desktop Header: Navbar superior completa.
- * - BottomNav Mobile: Navegação persistente na parte inferior.
- * - Footer: Minimalista ao final do conteúdo.
- */
+ /**
+  * Layout do Dashboard do Waylo (Refatorado - Missão 06).
+  *
+  * Estrutura:
+  * - Mobile Header: Logo centralizada fixa no topo.
+  * - Desktop Header: Navbar superior completa.
+  * - BottomNav Mobile: Navegação persistente na parte inferior.
+  * - Footer: Minimalista ao final do conteúdo.
+  */
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
   return (
     <div className="relative min-h-screen bg-background flex flex-col pb-20 md:pb-0">
       {/* 
@@ -86,19 +91,19 @@ export default function DashboardLayout({
       */}
       <nav className="fixed bottom-0 left-0 z-50 w-full border-t border-border bg-background/95 backdrop-blur-lg md:hidden">
         <div className="grid h-16 grid-cols-4 items-center justify-items-center">
-          <Link href="/dashboard" className="flex flex-col items-center justify-center space-y-1 text-primary">
+          <Link href="/dashboard" className={cn("flex flex-col items-center justify-center space-y-1 transition-colors", pathname === "/dashboard" ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
             <MapPin className="h-6 w-6" />
-            <span className="text-[10px] font-medium font-sans">Busca</span>
+            <span className="text-[10px] font-medium font-sans">Explorar</span>
           </Link>
-          <Link href="/dashboard/map" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
+          <Link href="/dashboard/map" className={cn("flex flex-col items-center justify-center space-y-1 transition-colors", pathname?.startsWith("/dashboard/map") ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
             <Map className="h-6 w-6" />
             <span className="text-[10px] font-medium font-sans">Mapa</span>
           </Link>
-          <Link href="/dashboard/trips" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
+          <Link href="/dashboard/trips" className={cn("flex flex-col items-center justify-center space-y-1 transition-colors", pathname?.startsWith("/dashboard/trips") ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
             <Briefcase className="h-6 w-6" />
             <span className="text-[10px] font-medium font-sans">Minhas Viagens</span>
           </Link>
-          <Link href="/dashboard/profile" className="flex flex-col items-center justify-center space-y-1 text-muted-foreground hover:text-foreground">
+          <Link href="/dashboard/profile" className={cn("flex flex-col items-center justify-center space-y-1 transition-colors", pathname?.startsWith("/dashboard/profile") ? "text-primary" : "text-muted-foreground hover:text-foreground")}>
             <User className="h-6 w-6" />
             <span className="text-[10px] font-medium font-sans">Conta</span>
           </Link>

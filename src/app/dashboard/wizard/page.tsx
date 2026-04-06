@@ -382,11 +382,6 @@ function WizardPageContent() {
 
       {/* ─── NAVIGATION ─── */}
       <div className="flex pt-6 border-t border-border justify-between items-center">
-        {step === 8 && (
-          <Button variant="ghost" onClick={() => handleSelect('selected_hotel', '')} className="font-bold text-muted-foreground hover:text-foreground h-12 rounded-xl mr-2">
-            Pular
-          </Button>
-        )}
         <Button variant="ghost" onClick={handleBack} className="font-bold text-muted-foreground hover:text-foreground h-12 rounded-xl">
           <ChevronLeft className="mr-2 h-4 w-4" />
           {t.common.back}

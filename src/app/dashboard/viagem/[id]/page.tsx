@@ -1,16 +1,17 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { 
-  ChevronLeft, 
-  Calendar as CalendarIcon, 
-  Users as UsersIcon, 
-  Sparkles, 
+import {
+  ChevronLeft,
+  Calendar as CalendarIcon,
+  Users as UsersIcon,
+  Sparkles,
   CheckCircle2,
   Map,
   Plane,
   DollarSign,
   Users,
-  Settings
+  Settings,
+  Trash2
 } from 'lucide-react'
 import { RealtimeTripListener } from '@/components/itinerary/RealtimeTripListener'
 import { GenerationTrigger } from '@/components/itinerary/GenerationTrigger'
@@ -19,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ActivityCard } from '@/components/itinerary/ActivityCard'
 import { ConciergeModal } from '@/components/itinerary/ConciergeModal'
 import { Button } from '@/components/ui/button'
+import { DeleteTripClient } from './delete-trip-client'
 import { getLanguageByCountry, getI18n, type LangCode } from '@/lib/i18n'
 
 export default async function ViagemHubPage({ params }: { params: { id: string } }) {
@@ -200,6 +202,41 @@ export default async function ViagemHubPage({ params }: { params: { id: string }
                 ))}
               </div>
             )}
+          </TabsContent>
+
+          {/* ─── AJUSTES TAB ─── */}
+          <TabsContent value="ajustes" className="space-y-8">
+            <div className="max-w-lg space-y-6">
+              {/* Header */}
+              <div className="space-y-1">
+                <h3 className="text-xl font-heading font-bold text-foreground">
+                  {lang === 'pt' ? 'Gerenciar Roteiro' : lang === 'es' ? 'Administrar Itinerario' : lang === 'fr' ? 'Gérer l\'Itinéraire' : lang === 'de' ? 'Reiseplan verwalten' : lang === 'it' ? 'Gestisci Itinerario' : lang === 'ja' ? '旅程の管理' : 'Manage Itinerary'}
+                </h3>
+                <p className="text-sm text-muted-foreground font-sans">
+                  {lang === 'pt' ? 'Esta viagem será removida permanentemente e não poderá ser recuperada.' : lang === 'es' ? 'Este viaje será eliminado permanentemente y no podrá recuperarse.' : lang === 'fr' ? 'Ce voyage sera supprimé définitivement.' : lang === 'de' ? 'Diese Reise wird dauerhaft gelöscht.' : lang === 'it' ? 'Questo viaggio sarà eliminato definitivamente.' : lang === 'ja' ? 'この旅行は完全削除されます。' : 'This trip will be permanently deleted.'}
+                </p>
+              </div>
+
+              {/* Delete Card */}
+              <div className="rounded-2xl border-2 border-destructive/20 bg-destructive/[0.03] p-5 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                    <Trash2 className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <h4 className="font-bold font-heading text-base text-foreground">
+                      {lang === 'pt' ? 'Deletar Roteiro' : lang === 'es' ? 'Eliminar Itinerario' : lang === 'fr' ? 'Supprimer' : lang === 'de' ? 'Löschen' : lang === 'it' ? 'Elimina' : lang === 'ja' ? '削除する' : 'Delete Itinerary'}
+                    </h4>
+                    <p className="text-xs text-muted-foreground font-sans">
+                      {lang === 'pt' ? 'Remover permanentemente do seu perfil' : lang === 'es' ? 'Eliminar permanentemente de tu perfil' : lang === 'fr' ? 'Supprimer définitivement' : lang === 'de' ? 'Dauerhaft entfernen' : lang === 'it' ? 'Elimina definitivamente' : lang === 'ja' ? '完全に削除' : 'Remove permanently from your profile'}
+                    </p>
+                  </div>
+                  <div className="ml-auto">
+                    <DeleteTripClient tripId={id} destination={destination} />
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabsContent>
         </Tabs>
       </main>
